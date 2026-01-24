@@ -59,7 +59,7 @@ def p0(cbt: float, n0: float, uz0: float, rp: float) -> float:
     P_0_0 = np.log(cbt)**2 + np.log(rp + cbt)*(5 + np.log(rp + cbt)) - np.log(cbt)*(5 + 2*np.log(rp + cbt))
     return outfront * (rp**4 - 10*rp**3*cbt + 3*rp**2*cbt**2 * P_0_II + 6*rp*cbt**3 * P_0_I + 6*cbt**4 * P_0_0)
 
-def tauE(p0: float, cbt: float, n0: float, uz0: float, rp: float, Tp: float, lambda_C: float) -> float:
+def tauE(p0: float, uz0: float, rp: float, Tp: float, kappa_perp: float) -> float:
     '''
     Energy confinement time for a cubic pureflow vortex
     Units: [s]
@@ -71,6 +71,6 @@ def tauE(p0: float, cbt: float, n0: float, uz0: float, rp: float, Tp: float, lam
     o Tp - Edge plasma temperature (K)
     o lambda_C - Coulomb logarithm
     '''
-    Bmax = btheta(cbt, uz0, n0, rp)
-    kappa_perp = spz.edgeKappaPerp_spitzer(n0, Tp, Bmax, lambda_C)
-    return (1.0 / 12.0) * p0 * rp**3 / (kappa_perp * Tp)
+    # Bmax = btheta(cbt, uz0, n0, rp)
+    # kappa_perp = spz.edgeKappaPerp_spitzer(n0, Tp, Bmax, lambda_C)
+    return (3.0 / 12.0) * p0 * rp**2 / (kappa_perp * Tp)
