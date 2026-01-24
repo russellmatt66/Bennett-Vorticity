@@ -1,16 +1,26 @@
-import constants as cnst
-import spitzer as spz
-import cubic_pureflow_module as cpfm
-import plasma_properties as pp
+# import constants as cnst
+# import spitzer as spz
+# import cubic_pureflow_module as cpfm
+# import plasma_properties as pp
+
+import sys
+import pathlib
+# ensure project root is on sys.path so the sibling `modules` package is importable
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+
+from modules import constants as cnst
+from modules import spitzer as spz
+from modules import cubic_pureflow_module as cpfm
+from modules import plasma_properties as pp
 
 import numpy as np
 '''
 Calculating energy confinement time for FuZE-like cubic vortices
 '''
 
-n0 = 1e24 # Plasma density [m^-3]
-Tp = 5e3 * cnst.eV_to_K # Plasma temperature [K]
-uz0 = 2e5 # Edge flow velocity [m/s]
+n0 = 1e23 # Plasma density [m^-3]
+Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K]
+uz0 = 1e5 # Edge flow velocity [m/s]
 rp = 5e-3 # Pinch radius [m]
 
 cbt = cpfm.cbt(n0, uz0, rp, Tp) # Vortex constant [m]
@@ -27,13 +37,26 @@ Bmax = np.abs(cpfm.btheta(cbt, uz0, n0, rp)) # Edge magnetic field [T]
 print(f'FuZE-like Edge Magnetic Field = {Bmax:.3e} T')
 
 omega_ce_edge = pp.omega_ce(Bmax) # Electron cyclotron frequency at the edge [rad/s]
-print(f'FuZE-like Edge Cyclotron Frequency = {omega_ce_edge:.3e} rad/s')
+omega_ci_edge = pp.omega_ci(Bmax, Z_h) # Ion cyclotron frequency at the edge [rad/s]
+print(f'FuZE-like Edge Electron Cyclotron Frequency = {omega_ce_edge:.3e} rad/s')
+print(f'FuZE-like Edge Ion Cyclotron Frequency = {omega_ci_edge:.3e} rad/s')
 
-tauee = spz.tau_ee(n0, Tp, lambda_C) # Electron-electron collision time [s]
-print(f'FuZE-like Electron-Electron Collision Time = {tauee:.3e} s')
+taue = spz.tau_e(n0, Tp, lambda_C) # Electron collision time [s]
+taui = spz.tau_i(n0, Tp, lambda_C) # Ion collision time [s]
+print(f'FuZE-like Electron Collision Time = {taue:.3e} s')
+print(f'FuZE-like Ion Collision Time = {taui:.3e} s')
 
-kappa_perp = spz.edgeKappaPerp_spitzer(n0, Tp, omega_ce_edge, tauee, lambda_C) # Perpendicular thermal conductivity at the edge [W/m/K]
-print(f'FuZE-like Edge Perpendicular Spitzer Thermal Conductivity = {kappa_perp:.3e} W/m/K')
+kappa_perp_e = spz.KappaPerp_spitzer_e(n0, Tp, omega_ce_edge, taue, lambda_C)
+kappa_perp_i = spz.KappaPerp_spitzer_i(n0, Tp, Z_h, omega_ci_edge, taui, lambda_C)
+print(f'FuZE-like Perpendicular Spitzer Electron Thermal Conductivity = {kappa_perp_e:.3e} W/m/K')
+print(f'FuZE-like Perpendicular Spitzer Ion Thermal Conductivity = {kappa_perp_i:.3e} W/m/K')
 
-tau_E = cpfm.tauE(p0, uz0, rp, Tp, kappa_perp) # Energy confinement time [s]
-print(f'FuZE-like tauE = {tau_E:.3e} s')
+tau_E = cpfm.tauE(p0, uz0, rp, Tp, kappa_perp_e) # Energy confinement time [s]
+tau_E_ion = cpfm.tauE(p0, uz0, rp, Tp, kappa_perp_i)
+print(f'FuZE-like electron energy confinement time = {tau_E:.3e} s')
+print(f'FuZE-like ion energy confinement time = {tau_E_ion:.3e} s')
+
+tau_E_parabolic = cpfm.tauE_parabolic(p0, uz0, rp, Tp, kappa_perp_e) # parabolic Energy confinement time [s]
+tau_E_ion_parabolic = cpfm.tauE_parabolic(p0, uz0, rp, Tp, kappa_perp_i)
+print(f'FuZE-like electron parabolic energy confinement time = {tau_E_parabolic:.3e} s')
+print(f'FuZE-like ion parabolic energy confinement time = {tau_E_ion_parabolic:.3e} s')

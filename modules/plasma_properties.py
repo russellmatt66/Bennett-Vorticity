@@ -1,4 +1,4 @@
-import constants as cnst
+from . import constants as cnst
 
 def omega_ce(B: float) -> float:
     '''
@@ -7,3 +7,12 @@ def omega_ce(B: float) -> float:
     o B - Magnetic field (T)
     '''
     return cnst.q_e * B / cnst.me 
+
+def omega_ci(B: float, Z: float) -> float:
+    '''
+    Ion (Hydrogen) cyclotron frequency
+    Units: [rad/s]
+    o B - Magnetic field (T)
+    o Z - Ionization state
+    '''
+    return Z * cnst.q_e * B / cnst.mH

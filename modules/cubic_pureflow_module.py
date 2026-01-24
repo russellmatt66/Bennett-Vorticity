@@ -1,6 +1,7 @@
 import numpy as np
-import constants as cnst
-import spitzer as spz
+
+from . import constants as cnst
+from . import spitzer as spz
 
 '''
 Calculating relevant physical properties for pureflow (\chi = 2) cubic vortices
@@ -74,3 +75,19 @@ def tauE(p0: float, uz0: float, rp: float, Tp: float, kappa_perp: float) -> floa
     # Bmax = btheta(cbt, uz0, n0, rp)
     # kappa_perp = spz.edgeKappaPerp_spitzer(n0, Tp, Bmax, lambda_C)
     return (3.0 / 12.0) * p0 * rp**2 / (kappa_perp * Tp)
+
+def tauE_parabolic(p0: float, uz0: float, rp: float, T0: float, kappa_perp: float) -> float:
+    '''
+    Energy confinement time for a parabolic pureflow vortex
+    Units: [s]
+    o p0 - Core plasma pressure (Pa)
+    o cbt - The vortex constant (m)
+    o n0 - Edge plasma density (m^-3)
+    o uz0 - Edge flow velocity (m/s)
+    o rp - Vortex radius (m)
+    o Tp - Edge plasma temperature (K)
+    o lambda_C - Coulomb logarithm
+    '''
+    # Bmax = btheta_parabolic(cbt, uz0, n0, rp)
+    # kappa_perp = spz.edgeKappaPerp_spitzer(n0, Tp, Bmax, lambda_C)
+    return (3.0 / 8.0) * p0 * rp**2 / (kappa_perp * T0)
