@@ -12,6 +12,7 @@ from modules import constants as cnst
 from modules import spitzer as spz
 from modules import cubic_pureflow_module as cpfm
 from modules import plasma_properties as pp
+from modules import powerbalance as pb
 
 import numpy as np
 '''
@@ -60,3 +61,9 @@ tau_E_parabolic = cpfm.tauE_parabolic(p0, uz0, rp, Tp, kappa_perp_e) # parabolic
 tau_E_ion_parabolic = cpfm.tauE_parabolic(p0, uz0, rp, Tp, kappa_perp_i)
 print(f'FuZE-like electron parabolic energy confinement time = {tau_E_parabolic:.3e} s')
 print(f'FuZE-like ion parabolic energy confinement time = {tau_E_ion_parabolic:.3e} s')
+
+vple = 3 # cubic vortex power law exponent
+ddfc = pb.DDFusionCalculator(vple)
+Teff_e = ddfc.Teff_e(n0, rp, Tp, omega_ce_edge, taue, lambda_C)
+
+print(f"The effective vortex temperature is {Teff_e * cnst.K_to_keV:.3e} keV")
