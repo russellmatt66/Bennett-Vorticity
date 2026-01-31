@@ -84,10 +84,20 @@ class DDFusionCalculator:
 
     def Teff_e(self, n0: float, rp: float, Tp: float, omega_ce: float, taue: float, lambda_C: float) -> float:
         """
-        This is an effective vortex temperature which attempts to account for fusion and bremsstrahlung losses 
+        This is an effective vortex temperature which is based on a balance of fusion energy power with bremsstrahlung, and thermal conduction losses of the edge vortex 
         """
         kappa_perp_e = spz.KappaPerp_spitzer_e(n0, Tp, omega_ce, taue, lambda_C)
         outfront = rp**2 / (2 * self.vple * kappa_perp_e)
         fusion_power_density = self.get_power_density(n0, Tp * cnst.K_to_keV) 
         brem_density = self.get_sb(n0, Tp * cnst.K_to_keV)
-        return Tp - outfront * (fusion_power_density - brem_density)
+        return Tp-outfront * (fusion_power_density - brem_density)
+
+    def T_vortex(self, n0: float, rp: float, Tp: float, omega_ce: float, taue: float, lambda_C: float) -> float:
+        """
+        This is an effective vortex temperature which is based on just a balance of fusion energy power with bremsstrahlung losses 
+        """
+        kappa_perp_e = spz.KappaPerp_spitzer_e(n0, Tp, omega_ce, taue, lambda_C)
+        outfront = rp**2 / (2 * self.vple * kappa_perp_e)
+        fusion_power_density = self.get_power_density(n0, Tp * cnst.K_to_keV) 
+        brem_density = self.get_sb(n0, Tp * cnst.K_to_keV)
+        return -outfront * (fusion_power_density - brem_density)

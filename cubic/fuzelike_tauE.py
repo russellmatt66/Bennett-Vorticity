@@ -65,5 +65,7 @@ print(f'FuZE-like ion parabolic energy confinement time = {tau_E_ion_parabolic:.
 vple = 3 # cubic vortex power law exponent
 ddfc = pb.DDFusionCalculator(vple)
 Teff_e = ddfc.Teff_e(n0, rp, Tp, omega_ce_edge, taue, lambda_C)
+Tvortex = ddfc.T_vortex(n0, rp, Tp, omega_ce_edge, taue, lambda_C)
 
 print(f"The effective vortex temperature is {Teff_e * cnst.K_to_keV:.3e} keV")
+print(f"The vortex temperature is {Tvortex * cnst.K_to_keV:.3e} keV")
