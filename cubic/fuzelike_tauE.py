@@ -20,9 +20,12 @@ Calculating energy confinement time for FuZE-like cubic vortices
 '''
 
 n0 = 1e24 # Plasma density [m^-3]
-Tp = 1e2 * cnst.eV_to_K # Plasma temperature [K]
-uz0 = 5e4 # Edge flow velocity [m/s]
+Tp = 25e3 * cnst.eV_to_K # Plasma temperature [K]
+uedge = 1e5 # Edge flow velocity [m/s]
 rp = 10e-3 # Pinch radius [m]
+
+uz0_roots = cpfm.root_solve_chi2(uedge, n0, rp, Tp)
+uz0 = 1e5 # Edge flow velocity [m/s]
 
 cbt = cpfm.cbt(n0, uz0, rp, Tp) # Vortex constant [m]
 print(f'FuZE-like cbt = {cbt:.3e} m')

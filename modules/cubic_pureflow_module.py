@@ -16,7 +16,7 @@ def cbt(n0: float, uz0: float, rp: float, Tp: float) -> float:
     coeff2 = (n0 * uz0**2 * rp**3) / Tp
     return coeff1 * coeff2
 
-def uz(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
+def uz_chi2cubic_pure(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
     '''
     Velocity profile uz(r) for cubic pureflow vortex
     UnitsL [m/s]
@@ -26,6 +26,30 @@ def uz(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
     '''
     term1 = r**2 / (r + cbt)**2
     return uz0 * term1
+
+def uz_chi2cubic_negbulk(cbt: float, uz0: float, u0: float, r: np.ndarray) -> np.ndarray:
+    '''
+    Velocity profile uz(r) for cubic pureflow vortex
+    UnitsL [m/s]
+    o cbt - The vortex constant [m]
+    o uz0 - Edge flow constant [m/s]
+    o u0 - Core flow constant [m/s]
+    o r - Radial positions (m)
+    '''
+    term1 = r**2 / (r + cbt)**2
+    return u0 - uz0 * term1
+
+def uz_chi2cubic_posbulk(cbt: float, uz0: float, u0: float, r: np.ndarray) -> np.ndarray:
+    '''
+    Velocity profile uz(r) for cubic pureflow vortex
+    UnitsL [m/s]
+    o cbt - The vortex constant [m]
+    o uz0 - Edge flow constant [m/s]
+    o u0 - Core flow constant [m/s]
+    o r - Radial positions (m)
+    '''
+    term1 = r**2 / (r + cbt)**2
+    return u0 + uz0 * term1
 
 def f(cbt: float, r: np.ndarray) -> np.ndarray:
     '''
@@ -91,3 +115,57 @@ def tauE_parabolic(p0: float, uz0: float, rp: float, T0: float, kappa_perp: floa
     # Bmax = btheta_parabolic(cbt, uz0, n0, rp)
     # kappa_perp = spz.edgeKappaPerp_spitzer(n0, Tp, Bmax, lambda_C)
     return (3.0 / 8.0) * p0 * rp**2 / (kappa_perp * T0)
+
+def root_solve_chi2_pure(uedge: float, n0: float, rp: float, Tp: float) -> np.ndarray:
+    """
+    Analytic solution for the roots of the fourth-order polynomial that arises from the chi=2 flow boundary condition for pureflow vortices.
+    """
+    A = (cnst.mu0 * cnst.q_e**2 * n0 * rp**3 / (16 * cnst.kB * Tp))**2
+    B = (cnst.mu0 * n0 * cnst.q_e**2 * rp**4) / (16 * cnst.kB * Tp)
+    
+    coeffs = [A * uedge, 0, 2 * B * uedge, -rp**2, uedge*rp**2]
+
+    uz0_roots = np.roots(coeffs)
+    print(f"Roots of the chi=2 flow boundary condition polynomial: {uz0_roots}")
+    uz0_real = uz0_roots[np.isreal(uz0_roots)].real
+    print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
+
+    return uz0_real 
+
+def root_solve_chi2_negbulk(uedge: float, u0: float, n0: float, rp: float, Tp: float) -> np.ndarray:
+    """
+    Analytic solution for the roots of the fourth-order polynomial that arises from the chi=2 flow boundary condition for 
+    bulk, negative, pureflow vortices.
+    """
+    A = (cnst.mu0 * cnst.q_e**2 * n0 * rp**3 / (16 * cnst.kB * Tp))**2
+    B = (cnst.mu0 * n0 * cnst.q_e**2 * rp**4) / (16 * cnst.kB * Tp)
+    
+    coeffs = [A * (uedge - u0), 0, 2 * B * (uedge - u0), rp**2, (uedge - u0)*rp**2]
+
+    uz0_roots = np.roots(coeffs)
+
+    print(f"Roots of the chi=2 flow boundary condition polynomial: {uz0_roots}")
+    
+    uz0_real = uz0_roots[np.isreal(uz0_roots)].real
+    print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
+
+    return uz0_roots
+
+def root_solve_chi2_posbulk(uedge: float, u0: float, n0: float, rp: float, Tp: float) -> np.ndarray:
+    """
+    Analytic solution for the roots of the fourth-order polynomial that arises from the chi=2 flow boundary condition for 
+    bulk, negative, pureflow vortices.
+    """
+    A = (cnst.mu0 * cnst.q_e**2 * n0 * rp**3 / (16 * cnst.kB * Tp))**2
+    B = (cnst.mu0 * n0 * cnst.q_e**2 * rp**4) / (16 * cnst.kB * Tp)
+    
+    coeffs = [A * (uedge - u0), 0, 2 * B * (uedge - u0), -rp**2, (uedge - u0)*rp**2]
+
+    uz0_roots = np.roots(coeffs)
+
+    print(f"Roots of the chi=2 flow boundary condition polynomial: {uz0_roots}")
+    
+    uz0_real = uz0_roots[np.isreal(uz0_roots)].real
+    print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
+
+    return uz0_roots
