@@ -4,9 +4,8 @@ from . import constants as cnst
 from . import spitzer as spz
 
 '''
-Calculating relevant physical properties for pureflow (\chi = 2) cubic vortices
+Calculating objects for pureflow (\chi = 2) cubic vortices
 '''
-
 def cbt(n0: float, uz0: float, rp: float, Tp: float) -> float:
     '''
     C_{B,T}^{(3)} = mu0 * e**2 / (16 * kB) * (n0 * uz0**2 * rp**3) / Tp
@@ -50,6 +49,15 @@ def uz_chi2cubic_posbulk(cbt: float, uz0: float, u0: float, r: np.ndarray) -> np
     '''
     term1 = r**2 / (r + cbt)**2
     return u0 + uz0 * term1
+
+def uz_chi2cubic_norm(phi: np.ndarray) -> np.ndarray:
+    '''
+    Normalized velocity profile uz(phi) for cubic pureflow vortex, where phi = r / cbt
+    Units
+    o phi - Normalized radial positions (dimensionless)
+    '''
+    term1 = phi**2 / (phi + 1)**2
+    return term1
 
 def f(cbt: float, r: np.ndarray) -> np.ndarray:
     '''
