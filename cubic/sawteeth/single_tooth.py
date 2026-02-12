@@ -28,20 +28,24 @@ phi_down = phi[int(phi.size // 2):] # Second half of the sawtooth period
 uz0_over_u0 = 0.5 * (beta_L + 1)**2 # Boundary condition for transition from pure to negative bulk flow
 
 uz_norm = cpfm.uz_chi2cubic_norm(phi_up)
-uz_norm_bulkneg = uz_norm.max() * cpfm.uz_chi2cubic_negbulk_norm_SHIFT(phi_down, uz0_over_u0, phi_p) 
+uz_norm *= 1.0 / uz_norm.max() # Normalize to the maximum value of the pure flow cubic vortex
+# uz_norm_bulkneg = uz_norm.max() * cpfm.uz_chi2cubic_negbulk_norm_SHIFT(phi_down, uz0_over_u0, phi_p) 
+uz_norm_bulkneg = cpfm.uz_chi2cubic_negbulk_norm_SHIFT(phi_down, uz0_over_u0, phi_p) 
 
 # triangle = 0.5 * (1.0 + signal.sawtooth(np.pi * phi, width=0.5))
 triangle = np.zeros(phi.size)
 triangle[0:int(phi.size // 2)] = phi_up / phi_p
 triangle[int(phi.size // 2):] = 2.0 - phi_down / phi_p 
-triangle *= uz_norm.max() 
+# triangle *= uz_norm.max() 
 
 plt.plot(phi, triangle, label='Sawtooth Waveform')
-plt.plot(phi_up, uz_norm, label='Normalized Flow Profile')
-plt.plot(phi_down, uz_norm_bulkneg, label='Normalized Flow Profile (Neg. Bulk)')
+plt.plot(phi_up, uz_norm, label='$\chi = 2$ Pure-flow Cubic Vortex')
+plt.plot(phi_down, uz_norm_bulkneg, label='$\chi = 2$ Neg. Bulk Cubic Vortex')
 
 plt.xlabel('$\\phi = r / cbt$')
 plt.ylabel('$\\tilde{u}(\\phi)$')
+
+plt.title('Two-Vortex chain sawtooth fit for $\phi_{p} = 1.0$')
 
 plt.legend()
 
