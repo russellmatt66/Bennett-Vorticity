@@ -49,4 +49,16 @@ plt.title('Two-Vortex chain sawtooth fit for $\phi_{p} = 1.0$')
 
 plt.legend()
 
+"""
+Plot the associated density
+"""
+plt.figure()
+
+# n_norm_bulkneg = cpfm.n_chi2cubic_negbulk_norm_SHIFT(phi_down, uz0_over_u0, phi_p)
+
+plt.plot(phi_up, 1, label='Pure-flow Density')
+plt.plot(phi_down, n_norm_bulkneg, label='Neg. Bulk Density')
+
+plt.legend()
+
 plt.show()
