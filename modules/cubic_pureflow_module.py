@@ -15,6 +15,7 @@ def cbt(n0: float, uz0: float, rp: float, Tp: float) -> float:
     coeff2 = (n0 * uz0**2 * rp**3) / Tp
     return coeff1 * coeff2
 
+# u_{z}^{(2)}(r) = u_{z0} * r**2 / (r + cbt)**2
 def uz_chi2cubic_pure(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
     '''
     Velocity profile uz(r) for cubic pureflow vortex
@@ -26,6 +27,7 @@ def uz_chi2cubic_pure(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
     term1 = r**2 / (r + cbt)**2
     return uz0 * term1
 
+# u_{z}^{(2),-}(r) = (u_{0} - u_{z0} * r**2 / (r + cbt)**2)
 def uz_chi2cubic_negbulk(cbt: float, uz0: float, u0: float, r: np.ndarray) -> np.ndarray:
     '''
     Velocity profile uz(r) for cubic pureflow vortex
@@ -38,6 +40,7 @@ def uz_chi2cubic_negbulk(cbt: float, uz0: float, u0: float, r: np.ndarray) -> np
     term1 = r**2 / (r + cbt)**2
     return u0 - uz0 * term1
 
+# u_{z}^{(2),+}(r) = (u_{0} + u_{z0} * r**2 / (r + cbt)**2)
 def uz_chi2cubic_posbulk(cbt: float, uz0: float, u0: float, r: np.ndarray) -> np.ndarray:
     '''
     Velocity profile uz(r) for cubic pureflow vortex
@@ -50,6 +53,7 @@ def uz_chi2cubic_posbulk(cbt: float, uz0: float, u0: float, r: np.ndarray) -> np
     term1 = r**2 / (r + cbt)**2
     return u0 + uz0 * term1
 
+# \tilde{u}_{z}^{2}(\phi) = \phi**2 / (\phi + 1)**2 = u_{z}^{(2)}(r) / u_{z0}, \phi = r / cbt
 def uz_chi2cubic_norm(phi: np.ndarray) -> np.ndarray:
     '''
     Normalized velocity profile uz(phi) for cubic pureflow vortex, where phi = r / cbt
@@ -59,6 +63,7 @@ def uz_chi2cubic_norm(phi: np.ndarray) -> np.ndarray:
     term1 = phi**2 / (phi + 1)**2
     return term1
 
+# u_{z}^{(2),-}(phi) = (u_{0} - u_{z0} * phi**2 / (phi + 1)**2)
 def uz_chi2cubic_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray:
     '''
     Normalized velocity profile uz(phi) for cubic pureflow vortex with negative bulk flow, where phi = r / cbt
@@ -69,6 +74,7 @@ def uz_chi2cubic_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray
     term1 = uz0_over_u0 * phi**2 / (phi + 1)**2
     return 1.0 - term1
 
+# u_{z}^{(2),-}(phi - phi_p) = (u_{0} - u_{z0} * (phi - phi_p)**2 / ((phi - phi_p) + 1)**2)
 def uz_chi2cubic_negbulk_norm_SHIFT(phi: np.ndarray, uz0_over_u0: float, phi_p: float) -> np.ndarray:
     '''
     Normalized velocity profile uz(phi) for cubic pureflow vortex with negative bulk flow, where phi = r / cbt
@@ -79,6 +85,17 @@ def uz_chi2cubic_negbulk_norm_SHIFT(phi: np.ndarray, uz0_over_u0: float, phi_p: 
     '''
     term1 = uz0_over_u0 * (phi - phi_p)**2 / (phi - phi_p + 1)**2
     return 1.0 - term1
+
+# Density forms
+# 
+def n_chi2cubicflow_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray:
+    '''
+    Normalized density profile n(phi) for cubic pureflow vortex with a negative bulk flow current
+    o phi - Normalized radial positions (dimensionless)
+    o uz0_over_u0 - Ratio of edge flow velocity to core flow velocity (dimensionless)
+    '''
+    term1 = (1.0 / uz0_over_u0) * (phi + 1)**2 / phi**2
+    return term1 - 1.0
 
 def f(cbt: float, r: np.ndarray) -> np.ndarray:
     '''
@@ -91,6 +108,8 @@ def f(cbt: float, r: np.ndarray) -> np.ndarray:
     term4 = 6 * cbt**3
     return term1 - term2 - term3 * (1 + np.log(cbt / (r + cbt))) - term4 * np.log(cbt / (r + cbt)) 
 
+# Change name and add more fields 
+# GPT-5.3-Codex suggests to make it a method for a vortex class
 def btheta(cbt: float, uz0: float, n0: float, r: np.ndarray) -> np.ndarray:
     '''
     Magnetic field profile btheta(r) for cubic pureflow vortex
