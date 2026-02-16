@@ -87,7 +87,7 @@ def uz_chi2cubic_negbulk_norm_SHIFT(phi: np.ndarray, uz0_over_u0: float, phi_p: 
     return 1.0 - term1
 
 # Density forms
-# 
+# -e * n(r) = J_{z}^{(2,-)}(r) / u_{z}^{(2)}(r)
 def n_chi2cubicflow_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray:
     '''
     Normalized density profile n(phi) for cubic pureflow vortex with a negative bulk flow current
