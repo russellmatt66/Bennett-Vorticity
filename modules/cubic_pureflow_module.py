@@ -110,13 +110,35 @@ def f(cbt: float, r: np.ndarray) -> np.ndarray:
 
 # Change name and add more fields 
 # GPT-5.3-Codex suggests to make it a method for a vortex class
-def btheta(cbt: float, uz0: float, n0: float, r: np.ndarray) -> np.ndarray:
+def btheta_chi2(cbt: float, uz0: float, n0: float, r: np.ndarray) -> np.ndarray:
     '''
     Magnetic field profile btheta(r) for cubic pureflow vortex
     Units: [T]
+    B_{theta}^{(2)}(r) = -mu0 * e * uz0 * n0 * f(cbt, r) / (2 * r * (r + cbt))
+                    = \frac{mu0}{r} * \int_0^r' r' * J_z^{(2)}(r') dr' 
     '''
     term1 = cnst.mu0 * cnst.q_e * uz0 * n0
     term2 = f(cbt, r) / (2.0 * r * (r + cbt))
+    return -term1 * term2
+
+def btheta_chi2_negbulk(cbt: float, uz0: float, u0: float, n0: float, r: np.ndarray) -> np.ndarray:
+    '''
+    Magnetic field profile btheta(r) for cubic pureflow vortex with negative bulk flow
+    Units: [T]
+    B_{theta}^{(2),-}(r) = -mu0 * e * n0 * (u0 * r / 2 - uz0 * f(cbt, r) / (2 * r * (r + cbt)))
+    '''
+    term1 = cnst.mu0 * cnst.q_e * n0
+    term2 = u0 * r / 2.0 - uz0 * f(cbt, r) / (2.0 * r * (r + cbt))
+    return -term1 * term2
+
+def btheta_chi2_posbulk(cbt: float, uz0: float, u0: float, n0: float, r: np.ndarray) -> np.ndarray:
+    '''
+    Magnetic field profile btheta(r) for cubic pureflow vortex with positive bulk flow
+    Units: [T]
+    B_{theta}^{(2),+}(r) = -mu0 * e * n0 * (u0 * r / 2 + uz0 * f(cbt, r) / (2 * r * (r + cbt)))
+    '''
+    term1 = cnst.mu0 * cnst.q_e * n0
+    term2 = u0 * r / 2.0 + uz0 * f(cbt, r) / (2.0 * r * (r + cbt))
     return -term1 * term2
 
 def p0(cbt: float, n0: float, uz0: float, rp: float) -> float:
