@@ -31,6 +31,9 @@ def gravitational_drift_hotdog() -> np.ndarray:
     # IMPLEMENT
     pass
 
-def resistive_drift() -> np.ndarray:
+def resistive_drift(qj: float, n0: float, uz: np.ndarray, btheta: np.ndarray) -> np.ndarray:
     # IMPLEMENT
-    pass
+    # pass
+    numerator = qj * cnst.q_e * n0 * uz
+    denominator = btheta
+    return numerator / denominator
