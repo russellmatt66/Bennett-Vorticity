@@ -9,8 +9,8 @@ o Resistive
 """
 import numpy as np
 
-import constants as cnst
-import plasma_properties as pp
+from . import constants as cnst
+from . import plasma_properties as pp
 
 def diamagnetic_drift(uz: np.ndarray) -> np.ndarray:
     print('Calculating diamagnetic drift - it\'s just the velocity profile')

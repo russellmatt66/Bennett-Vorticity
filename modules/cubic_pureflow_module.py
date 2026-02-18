@@ -108,8 +108,7 @@ def f(cbt: float, r: np.ndarray) -> np.ndarray:
     term4 = 6 * cbt**3
     return term1 - term2 - term3 * (1 + np.log(cbt / (r + cbt))) - term4 * np.log(cbt / (r + cbt)) 
 
-# Change name and add more fields 
-# GPT-5.3-Codex suggests to make it a method for a vortex class
+# GPT-5.3-Codex suggests to make this a method for a vortex class
 def btheta_chi2(cbt: float, uz0: float, n0: float, r: np.ndarray) -> np.ndarray:
     '''
     Magnetic field profile btheta(r) for cubic pureflow vortex
@@ -197,10 +196,10 @@ def root_solve_chi2_pure(uedge: float, n0: float, rp: float, Tp: float) -> np.nd
 
     uz0_roots = np.roots(coeffs)
     print(f"Roots of the chi=2 flow boundary condition polynomial: {uz0_roots}")
-    uz0_real = uz0_roots[np.isreal(uz0_roots)].real
-    print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
+        # uz0_real = uz0_roots[np.isreal(uz0_roots)].real
+        # print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
 
-    return uz0_real 
+    return uz0_roots
 
 def root_solve_chi2_negbulk(uedge: float, u0: float, n0: float, rp: float, Tp: float) -> np.ndarray:
     """
@@ -216,15 +215,15 @@ def root_solve_chi2_negbulk(uedge: float, u0: float, n0: float, rp: float, Tp: f
 
     print(f"Roots of the chi=2 flow boundary condition polynomial: {uz0_roots}")
     
-    uz0_real = uz0_roots[np.isreal(uz0_roots)].real
-    print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
+    # uz0_real = uz0_roots[np.isreal(uz0_roots)].real
+    # print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
 
     return uz0_roots
 
 def root_solve_chi2_posbulk(uedge: float, u0: float, n0: float, rp: float, Tp: float) -> np.ndarray:
     """
     Analytic solution for the roots of the fourth-order polynomial that arises from the chi=2 flow boundary condition for 
-    bulk, negative, pureflow vortices.
+    bulk, positive, pureflow vortices.
     """
     A = (cnst.mu0 * cnst.q_e**2 * n0 * rp**3 / (16 * cnst.kB * Tp))**2
     B = (cnst.mu0 * n0 * cnst.q_e**2 * rp**4) / (16 * cnst.kB * Tp)
@@ -235,7 +234,7 @@ def root_solve_chi2_posbulk(uedge: float, u0: float, n0: float, rp: float, Tp: f
 
     print(f"Roots of the chi=2 flow boundary condition polynomial: {uz0_roots}")
     
-    uz0_real = uz0_roots[np.isreal(uz0_roots)].real
-    print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
+    # uz0_real = uz0_roots[np.isreal(uz0_roots)].real
+    # print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
 
     return uz0_roots
