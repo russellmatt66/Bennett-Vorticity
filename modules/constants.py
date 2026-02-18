@@ -3,6 +3,7 @@ from numpy import pi
 mu0 = 4 * pi * 1e-7 # Permeability of free space (H/m)
 kB = 1.380649e-23 # Boltzmann constant (J/K)
 q_e = 1.602176634e-19 # Elementary charge (C)
+G = 6.67430e-11 # Gravitational constant (m^3 kg^-1 s^-2)
 
 me = 9.10938356e-31 # Electron mass (kg)
 mH = 1.6735575e-27 # Hydrogen ion mass (kg)

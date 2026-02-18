@@ -35,7 +35,7 @@ class DDFusionCalculator:
             'C7': 0.0
         }
 
-        self.vple = n # vortex power law exponent
+        self.vple = n # vple = "vortex power law exponent"
 
     def _compute_sigmav(self, T_kev, C):
         """Internal helper to calculate one branch."""
