@@ -11,6 +11,7 @@ import numpy as np
 
 from . import constants as cnst
 from . import plasma_properties as pp
+from . import spitzer as spz
 
 def diamagnetic_drift(uz: np.ndarray) -> np.ndarray:
     print('Calculating diamagnetic drift - it\'s just the velocity profile')
@@ -44,7 +45,7 @@ def gravitational_drift_waterfall(mj: float, qj: float, g0: float, btheta: np.nd
     denominator = btheta * qj
     return -numerator / denominator # points in negative r direction
 
-def resistive_drift(qj: float, n0: float, uz: np.ndarray, btheta: np.ndarray) -> np.ndarray:
-    numerator = qj * cnst.q_e * n0 * uz
+def resistive_drift(Zj: float, n0: float, uz: np.ndarray, btheta: np.ndarray, T: np.ndarray, lambda_C: float) -> np.ndarray:
+    numerator = cnst.q_e * n0 * uz * spz.eta_perp_spitzer(Zj, T, lambda_C)
     denominator = btheta
     return numerator / denominator

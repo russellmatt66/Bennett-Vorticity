@@ -25,6 +25,28 @@ def tau_i(n0: float, Tp: float, lambda_C: float) -> float:
     denom = 4 * np.sqrt(np.pi) * n0 * cnst.q_e**4 * lambda_C
     return numer / denom
 
+def eta_spitzer(Z: float, T: np.ndarray, lambda_C: float) -> np.ndarray:
+    '''
+    Spitzer resistivity
+    Units: [Ohm m]
+    o Z - Ionization state
+    o T - Plasma temperature (K)
+    o lambda_C - Coulomb logarithm
+    '''
+    # Chen 5.6 3e
+    coeff = 5.2e-5 * Z * lambda_C
+    return coeff / (T**(1.5) * cnst.K_to_eV**(1.5))
+
+def eta_perp_spitzer(Z: float, T: np.ndarray, lambda_C: float) -> np.ndarray:
+    '''
+    Perpendicular Spitzer resistivity
+    Units: [Ohm m]
+    o Z - Ionization state
+    o T - Plasma temperature (K)
+    o lambda_C - Coulomb logarithm
+    '''
+    return 2.0 * eta_spitzer(Z, T, lambda_C)
+
 # ee collisions
 def KappaPerp_spitzer_e(n0: float, Tp: float, omega_ce: float, taue: float, lambda_C: float) -> float:
     '''
