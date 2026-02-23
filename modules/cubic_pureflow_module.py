@@ -6,6 +6,7 @@ from . import spitzer as spz
 '''
 Calculating objects for pureflow (\chi = 2) cubic vortices
 '''
+# Mixing length (?)
 def cbt(n0: float, uz0: float, rp: float, Tp: float) -> float:
     '''
     C_{B,T}^{(3)} = mu0 * e**2 / (16 * kB) * (n0 * uz0**2 * rp**3) / Tp
@@ -15,6 +16,7 @@ def cbt(n0: float, uz0: float, rp: float, Tp: float) -> float:
     coeff2 = (n0 * uz0**2 * rp**3) / Tp
     return coeff1 * coeff2
 
+# Velocity forms
 # u_{z}^{(2)}(r) = u_{z0} * r**2 / (r + cbt)**2
 def uz_chi2cubic_pure(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
     '''
@@ -86,6 +88,16 @@ def uz_chi2cubic_negbulk_norm_SHIFT(phi: np.ndarray, uz0_over_u0: float, phi_p: 
     term1 = uz0_over_u0 * (phi - phi_p)**2 / (phi - phi_p + 1)**2
     return 1.0 - term1
 
+# Laplacian of the velocity profile for cubic pureflow vortex
+def LapU_chi2cubic_pure(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
+    '''
+    Laplacian of the velocity profile for cubic pureflow vortex
+    Units: [s^-1]
+    '''
+    numerator = 2 * cbt * (2 * cbt - r) * uz0
+    denominator = (r + cbt)**4
+    return numerator / denominator
+
 # Density forms
 # -e * n(r) = J_{z}^{(2,-)}(r) / u_{z}^{(2)}(r)
 def n_chi2cubicflow_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray:
@@ -97,6 +109,7 @@ def n_chi2cubicflow_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndar
     term1 = (1.0 / uz0_over_u0) * (phi + 1)**2 / phi**2
     return term1 - 1.0
 
+# Magnetic field forms
 def f(cbt: float, r: np.ndarray) -> np.ndarray:
     '''
     Logarithmic constituent function for magnetic field profile in cubic pureflow vortex
@@ -140,6 +153,18 @@ def btheta_chi2_posbulk(cbt: float, uz0: float, u0: float, n0: float, r: np.ndar
     term2 = u0 * r / 2.0 + uz0 * f(cbt, r) / (2.0 * r * (r + cbt))
     return -term1 * term2
 
+# dB/dr for cubic pureflow vortex
+def gradbtheta_chi2cubic_pure(cbt: float, uz0: float, n0: float, r: np.ndarray) -> np.ndarray:
+    '''
+    Radial gradient of the magnetic field profile for cubic pureflow vortex
+    Units: [T/m]
+    '''
+    term1 = cnst.mu0 * cnst.q_e * n0 * uz0
+    term2 = r * (r**3 + 6*cbt**3 + 9 * cbt**2 * r + 2 * cbt * r**2) / (r + cbt)**2
+    term3 = 6 * cbt**2 * np.log(cbt / (r + cbt))
+    return -term1 * (term2 + term3) / (2 * r**2)
+
+# Miscellaneous
 def p0(cbt: float, n0: float, uz0: float, rp: float) -> float:
     '''
     Core plasma pressure for cubic pureflow vortex

@@ -18,7 +18,7 @@ def diamagnetic_drift(uz: np.ndarray) -> np.ndarray:
     return uz
 
 def gradB_drift(mj: float, qj: float, btheta: np.ndarray, gradB: np.ndarray, uz: np.ndarray) -> np.ndarray:
-    KE_perp = 0.5 * mj * (uz**2)  # Placeholder for actual perpendicular kinetic energy calculation
+    KE_perp = 0.5 * mj * (uz**2)  # Should this be uz or pp.vth?
     numerator = KE_perp * gradB
     denominator = qj * btheta**2
     return numerator / denominator
