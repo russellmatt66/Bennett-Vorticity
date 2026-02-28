@@ -23,7 +23,7 @@ uz_Iz = pd.DataFrame({
     'r (mm)': uz_data['Figure3_Iz'],
     'Iz (A.U.)' : uz_data['Unnamed: 1'], # not currents, but intensities of light emission
     # 'name' : 'Iz'
-}).dropna().sort_values(by='r (mm)', ascending=True)
+}).dropna().sort_values(by='r (mm)', ascending=True).drop_duplicates(subset=['r (mm)'])
 
 uz_Ix = pd.DataFrame({
     'r (mm)': uz_data['Figure3_Ix'],
@@ -47,3 +47,25 @@ uz_needletip = pd.DataFrame({
 print(uz_needletip.head())
 
 
+# Plasma properties
+u0 = 0.75e6 # Core flow velocity [m/s]; mm / ns -> m/s
+n0 = 1e18 # Plasma density [m^-3]; 1e17 - 1e19
+# Tp = 
+
+plt.figure()
+plt.plot(uz_Iz['r (mm)'], uz_Iz['Iz (A.U.)'], label='Iz')
+plt.plot(uz_needletip['r (mm)'], uz_needletip['Iz (A.U.)'], label='Needle tip Iz')
+
+plt.xlabel('r (mm)')
+plt.ylabel('Intensity (A.U.)')
+plt.title('Light emission profiles from Li et al. 2021 Figure 3')
+plt.legend()
+
+plt.figure()
+plt.plot(uz_Ix['r (mm)'], uz_Ix['Ix (A.U.)'], label='Ix')
+plt.xlabel('r (mm)')
+plt.ylabel('Intensity (A.U.)')
+plt.title('Light emission profiles from Li et al. 2021 Figure 3')
+plt.legend()
+
+plt.show()
