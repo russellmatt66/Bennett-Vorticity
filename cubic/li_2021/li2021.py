@@ -50,7 +50,8 @@ print(Iz_needletip.head())
 # Plasma properties
 u0 = 0.75e6 # Core flow velocity [m/s]; mm / ns -> m/s
 n0 = 1e18 # Plasma density [m^-3]; 1e17 - 1e19
-Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti ~ 1 keV is just a guess
+# Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti ~ 1 keV is just a guess
+Tp = 300 # Li et al (2021) estimate for gas temperature. p12, S4.6
 
 rp_front = 5e-3 # m
 rp_wake = 20e-3 # m 
@@ -62,14 +63,30 @@ I0 = Iz['Iz (A.U.)'].max() # Use the maximum intensity as a proxy for the core f
 alpha = I0 / (cnst.q_e * n0 * u0) # Proportionality constant to convert intensity to velocity
 print(f'Proportionality constant alpha: {alpha}')
 
-uz0_roots_front = cpfm.root_solve_chi2_negbulk(Iz_front['Iz (A.U.)'] * alpha, u0, n0, rp_front, Tp)
-uz0_roots_wake = cpfm.root_solve_chi2_negbulk(Iz_wake['Iz (A.U.)'] * alpha, u0, n0, rp_wake, Tp)
+uedge_front = 0.0
+uedge_wake = 0.0
+uz0_roots_front = cpfm.root_solve_chi2_negbulk(uedge_front, u0, n0, rp_front, Tp)
+uz0_roots_wake = cpfm.root_solve_chi2_negbulk(uedge_wake, u0, n0, rp_wake, Tp)
 
+uz_fits_front = []
+cbts_front = []
 for uz0 in uz0_roots_front:
     print(f'uz0 root for front: {uz0} m/s')
-    # Construct flow profile
-    # Plot against data
+    cbt_front = cpfm.cbt(n0, np.abs(uz0), rp_front, Tp)    
+    print(f'cbt for front: {cbt_front} m')
+    uz_fit = cpfm.uz_chi2cubic_negbulk(cbt_front, uz0, u0, Iz_front['r (mm)'] * 1e-3) # Convert to meters
+    uz_fits_front.append(uz_fit)
+    cbts_front.append(cbt_front)
 
+uz_fits_wake = []
+cbts_wake = []
+for uz0 in uz0_roots_wake:
+    print(f'uz0 root for wake: {uz0} m/s')
+    cbt_wake = cpfm.cbt(n0, np.abs(uz0), rp_wake, Tp)    
+    print(f'cbt for wake: {cbt_wake} m')
+    uz_fit = cpfm.uz_chi2cubic_negbulk(cbt_wake, uz0, u0, Iz_wake['r (mm)'] * 1e-3) # Convert to meters
+    uz_fits_wake.append(uz_fit)
+    cbts_wake.append(cbt_wake)
 
 # plt.figure()
 
