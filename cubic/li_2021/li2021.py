@@ -51,7 +51,7 @@ print(Iz_needletip.head())
 u0 = 0.75e6 # Core flow velocity [m/s]; mm / ns -> m/s
 n0 = 1e18 # Plasma density [m^-3]; 1e17 - 1e19
 # Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti ~ 1 keV is just a guess
-Tp = 300 # Li et al (2021) estimate for gas temperature. p12, S4.6
+Tp = 30000 # Li et al (2021) estimate for gas temperature is 300 [degK]: p12, S4.6
 
 rp_front = 5e-3 # m
 rp_wake = 20e-3 # m 
@@ -68,13 +68,22 @@ uedge_wake = 0.0
 uz0_roots_front = cpfm.root_solve_chi2_negbulk(uedge_front, u0, n0, rp_front, Tp)
 uz0_roots_wake = cpfm.root_solve_chi2_negbulk(uedge_wake, u0, n0, rp_wake, Tp)
 
+# Calculate the appropriate spatial grid
+# r_front = Iz_front['r (mm)'].to_numpy() * 1e-3 # Convert to meters
+# r_wake = Iz_wake['r (mm)'].to_numpy() * 1e-3 # Convert to meters
+r_front = np.linspace(0, rp_front, 100) # 100 points from 0 to rp_front
+r_wake = np.linspace(0, rp_wake, 100) # 100
+
+# More processing 
+
+
 uz_fits_front = []
 cbts_front = []
 for uz0 in uz0_roots_front:
     print(f'uz0 root for front: {uz0} m/s')
     cbt_front = cpfm.cbt(n0, np.abs(uz0), rp_front, Tp)    
     print(f'cbt for front: {cbt_front} m')
-    uz_fit = cpfm.uz_chi2cubic_negbulk(cbt_front, uz0, u0, Iz_front['r (mm)'] * 1e-3) # Convert to meters
+    uz_fit = cpfm.uz_chi2cubic_negbulk(cbt_front, np.abs(uz0), u0, r_front) 
     uz_fits_front.append(uz_fit)
     cbts_front.append(cbt_front)
 
@@ -84,13 +93,20 @@ for uz0 in uz0_roots_wake:
     print(f'uz0 root for wake: {uz0} m/s')
     cbt_wake = cpfm.cbt(n0, np.abs(uz0), rp_wake, Tp)    
     print(f'cbt for wake: {cbt_wake} m')
-    uz_fit = cpfm.uz_chi2cubic_negbulk(cbt_wake, uz0, u0, Iz_wake['r (mm)'] * 1e-3) # Convert to meters
+    uz_fit = cpfm.uz_chi2cubic_negbulk(cbt_wake, np.abs(uz0), u0, r_wake) 
     uz_fits_wake.append(uz_fit)
     cbts_wake.append(cbt_wake)
 
-# plt.figure()
+plt.figure()
+for i in range(len(uz_fits_front)):
+    plt.plot(r_front * 1e3, uz_fits_front[i], label=f'Fit {i+1}, (cbt={cbts_front[i]:.2e} m, uz0 ={uz0_roots_front[i]:.2e} m/s)')
+    # plt.scatter(Iz_front['r (mm)'], Iz_front['Iz (A.U.)'] * alpha / 1e6, color='red', label='Experimental Data')
+    plt.xlabel('r (mm)')
+    plt.ylabel('uz (m/s)')
+    plt.title(f'Cubic vortex fit to Li et al. (2021) front profile \n $r_{{p}}$={rp_front*1e3:.0f} mm, $T_{{p}}$ = {Tp:.0f} K')
+    plt.legend()
 
-
+# Experimental Data
 # plt.figure()
 # plt.plot(Iz['r (mm)'], Iz['Iz (A.U.)'], label='Iz')
 # plt.plot(Iz_needletip['r (mm)'], Iz_needletip['Iz (A.U.)'], label='Needle tip Iz')
