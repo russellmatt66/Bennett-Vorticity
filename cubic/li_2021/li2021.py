@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from sklearn.metrics import mean_squared_error
+from scipy.signal import savgol_filter
 
 I_data = pd.read_csv('../../experimental_data/li_2021/li2021_airplasmastreamer_fig3.csv', header=0, skiprows=[1])
 
@@ -46,6 +47,27 @@ Iz_needletip = pd.DataFrame({
     
 print(Iz_needletip.head())
 
+# high-res Iz data
+Iz_highres_data = pd.read_csv('../../experimental_data/li_2021/Figure3_Iz_highres.csv', header=0, skiprows=[1])
+
+# print(Iz_highres_data.head())
+
+Iz_highres = pd.DataFrame({
+    'r (mm)': Iz_highres_data.iloc[:, 0], 
+    'Iz (A.U.)' : Iz_highres_data.iloc[:, 1],
+}).dropna().sort_values(by='r (mm)', ascending=True)
+
+threshold_dr = 0.001
+Iz_highres = Iz_highres[Iz_highres['r (mm)'].diff().fillna(np.inf) > threshold_dr] # eliminate duplicates (jitter) from manual digitization of high-res data
+
+# threshold_I = 3.0
+# Iz_highres = Iz_highres[Iz_highres['Iz (A.U.)'] ]
+
+# window_length = 21 # should always be odd 
+# poly_order = 3
+# Iz_highres['Iz (A.U.)'] = savgol_filter(Iz_highres['Iz (A.U.)'], window_length, poly_order)
+
+print(Iz_highres.head())
 
 # Plasma properties
 u0 = 0.75e6 # Core flow velocity [m/s]; mm / ns -> m/s
@@ -61,11 +83,15 @@ Iz_front = Iz[Iz['r (mm)'] < 50] * 1e-3 # Convert to meters
 Iz_wake = Iz[Iz['r (mm)'] > 50] * 1e-3 # Convert to meters
 
 I0 = Iz['Iz (A.U.)'].max() # Use the maximum intensity as a proxy for the core flow velocity
-alpha = I0 / (cnst.q_e * n0 * u0) # Proportionality constant to convert intensity to velocity
+alpha = I0 / (cnst.q_e * n0 * u0) # Proportionality constant to convert current density to intensity
 print(f'Proportionality constant alpha: {alpha}')
 
-uedge_front = 0.0
-uedge_wake = 0.0
+uedge_front = Iz_front[Iz_front['r (mm)'] == Iz_front['r (mm)'].min()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
+uedge_wake = Iz_wake[Iz_wake['r (mm)'] == Iz_wake['r (mm)'].max()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
+
+print(f'Edge flow velocity for front profile: {uedge_front} m/s')
+print(f'Edge flow velocity for wake profile: {uedge_wake} m/s')
+
 uz0_roots_front = cpfm.root_solve_chi2_negbulk(uedge_front, u0, n0, rp_front, Tp_front)
 uz0_roots_wake = cpfm.root_solve_chi2_negbulk(uedge_wake, u0, n0, rp_wake, Tp_wake)
 
@@ -113,7 +139,8 @@ print(f'z0 (position of maximum intensity in front profile): {z0} mm')
 
 # Experimental Data
 plt.figure()
-plt.plot(Iz['r (mm)'], Iz['Iz (A.U.)'], label='Iz')
+# plt.plot(Iz['r (mm)'], Iz['Iz (A.U.)'], label='Iz')
+plt.plot(Iz_highres['r (mm)'], Iz_highres['Iz (A.U.)'], label='Iz')
 for i in range(len(uz_fits_front)):
     plt.plot(-r_front * 1e3 + z0, alpha * cnst.q_e * n0 * uz_fits_front[i], label=f'Vortex {i+1}')
 
