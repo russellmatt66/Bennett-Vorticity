@@ -71,12 +71,12 @@ print(Iz_highres.head())
 
 # Plasma properties
 u0 = 0.75e6 # Core flow velocity [m/s]; mm / ns -> m/s
-n0 = 8e17 # Plasma density [m^-3]; 1e17 - 1e19
+n0 = 5e17 # Plasma density [m^-3]; 1e17 - 1e19
 # Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti ~ 1 keV is just a guess
-Tp_front = 20000 # Li et al (2021) estimate for gas temperature is 300 [degK]: p12, S4.6
+Tp_front = 50000 # Li et al (2021) estimate for gas temperature is 300 [degK]: p12, S4.6
 Tp_wake = 60000
 
-rp_front = 5e-3 # m
+rp_front = 10e-3 # m
 rp_wake = 10e-3 # m 
 
 Iz_front = Iz[Iz['r (mm)'] < 50] * 1e-3 # Convert to meters 
@@ -140,13 +140,13 @@ print(f'z0 (position of maximum intensity in front profile): {z0} mm')
 # Experimental Data
 plt.figure()
 # plt.plot(Iz['r (mm)'], Iz['Iz (A.U.)'], label='Iz')
-plt.plot(Iz_highres['r (mm)'], Iz_highres['Iz (A.U.)'], label='Iz')
+plt.plot(Iz_highres['r (mm)'], Iz_highres['Iz (A.U.)'], label='Li et al. (2021) Iz')
 for i in range(len(uz_fits_front)):
     plt.plot(-r_front * 1e3 + z0, alpha * cnst.q_e * n0 * uz_fits_front[i], label=f'Vortex {i+1}')
 
 plt.xlabel('r (mm)')
 plt.ylabel('Intensity (A.U.)')
-plt.title('Light emission profiles from Li et al. 2021 Figure 3')
+plt.title(f'Vortex fits to Li et al. (2021) intensity')
 plt.legend()
 
 # plt.figure()
