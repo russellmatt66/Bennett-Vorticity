@@ -86,8 +86,8 @@ I0 = Iz['Iz (A.U.)'].max() # Use the maximum intensity as a proxy for the core f
 alpha = I0 / (cnst.q_e * n0 * u0) # Proportionality constant to convert current density to intensity
 print(f'Proportionality constant alpha: {alpha}')
 
-uedge_front = Iz_front[Iz_front['r (mm)'] == Iz_front['r (mm)'].min()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
-uedge_wake = Iz_wake[Iz_wake['r (mm)'] == Iz_wake['r (mm)'].max()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
+uedge_front = Iz_highres[Iz_highres['r (mm)'] == Iz_highres['r (mm)'].min()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
+uedge_wake = Iz_highres[Iz_highres['r (mm)'] == Iz_highres['r (mm)'].max()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
 
 print(f'Edge flow velocity for front profile: {uedge_front} m/s')
 print(f'Edge flow velocity for wake profile: {uedge_wake} m/s')
