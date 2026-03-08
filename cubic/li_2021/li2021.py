@@ -57,9 +57,10 @@ Iz_highres = pd.DataFrame({
     'Iz (A.U.)' : Iz_highres_data.iloc[:, 1],
 }).dropna().sort_values(by='r (mm)', ascending=True)
 
-threshold_dr = 0.001
+threshold_dr = 0.001 # for eliminating duplicates from manual digitization of data 
 Iz_highres = Iz_highres[Iz_highres['r (mm)'].diff().fillna(np.inf) > threshold_dr] # eliminate duplicates (jitter) from manual digitization of high-res data
 
+# Attempted smoothing of high-res data with Savitsky-Golay filter, but it seems to distort the profile too much, so commenting out for now
 # threshold_I = 3.0
 # Iz_highres = Iz_highres[Iz_highres['Iz (A.U.)'] ]
 
@@ -72,12 +73,18 @@ print(Iz_highres.head())
 # Plasma properties
 u0 = 0.75e6 # Core flow velocity [m/s]; mm / ns -> m/s
 n0 = 5e17 # Plasma density [m^-3]; 1e17 - 1e19
+
+u0_needletip = 0.375e6 # Core flow velocity for plasma at the needletip [m/s];
+n0_needletip = 1e19 # Plasma density for plasma at the needletip
+
 # Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti ~ 1 keV is just a guess
 Tp_front = 10000 # Li et al (2021) estimate for gas temperature is 300 [degK]: p12, S4.6
-Tp_wake = 100000
+Tp_wake = 100000 
+Tp_needletip = 100000 # needletip edge plasma temperature [degK]
 
 rp_front = 5e-3 # m
 rp_wake = 15e-3 # m 
+rp_needletip = 7.5e-3 # m
 
 Iz_front = Iz[Iz['r (mm)'] < 50] * 1e-3 # Convert to meters 
 Iz_wake = Iz[Iz['r (mm)'] > 50] * 1e-3 # Convert to meters
@@ -88,15 +95,23 @@ print(f'Proportionality constant alpha: {alpha}')
 
 uedge_front = Iz_highres[Iz_highres['r (mm)'] == Iz_highres['r (mm)'].min()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
 uedge_wake = Iz_highres[Iz_highres['r (mm)'] == Iz_highres['r (mm)'].max()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
+uedge_needletip = Iz_needletip[Iz_needletip['r (mm)'] == Iz_needletip['r (mm)'].min()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
 
 print(f'Edge flow velocity for front profile: {uedge_front} m/s')
 print(f'Edge flow velocity for wake profile: {uedge_wake} m/s')
+print(f'Edge flow velocity for needletip profile: {uedge_needletip} m/s')
 
 uz0_roots_front = cpfm.root_solve_chi2_negbulk(uedge_front, u0, n0, rp_front, Tp_front)
 uz0_roots_wake = cpfm.root_solve_chi2_negbulk(uedge_wake, u0, n0, rp_wake, Tp_wake)
+uz0_roots_needletip = cpfm.root_solve_chi2_negbulk(uedge_needletip, u0_needletip, n0_needletip, rp_needletip, Tp_needletip)
 
-r_front = np.linspace(0, rp_front, 100) 
-r_wake = np.linspace(0, rp_wake, 100)
+num_r_front = 100
+num_r_wake = 100
+num_r_needletip = 100
+
+r_front = np.linspace(0, rp_front, num_r_front) 
+r_wake = np.linspace(0, rp_wake, num_r_wake)
+r_needletip = np.linspace(0, rp_needletip, num_r_needletip)
 
 uz_fits_front = []
 cbts_front = []
@@ -118,6 +133,16 @@ for uz0 in uz0_roots_wake:
     uz_fits_wake.append(uz_fit)
     cbts_wake.append(cbt_wake)
 
+uz_fits_needletip = []
+cbts_needletip = []
+for uz0 in uz0_roots_needletip:
+    print(f'uz0 root for needletip: {uz0} m/s')
+    cbt_needletip = cpfm.cbt(n0_needletip, np.abs(uz0), rp_needletip, Tp_needletip)    
+    print(f'cbt for needletip: {cbt_needletip} m')
+    uz_fit = cpfm.uz_chi2cubic_negbulk(cbt_needletip, np.abs(uz0), u0_needletip, r_needletip) 
+    uz_fits_needletip.append(uz_fit)
+    cbts_needletip.append(cbt_needletip)
+
 plt.figure()
 for i in range(len(uz_fits_front)):
     plt.plot(r_front * 1e3, uz_fits_front[i], label=f'Vortex {i+1}, (cbt={cbts_front[i]:.2e} m, uz0 ={uz0_roots_front[i]:.2e} m/s)')
@@ -134,19 +159,34 @@ for j in range(len(uz_fits_wake)):
     plt.title(f'Cubic vortex fit to Li et al. (2021) wake profile \n $r_{{p}}$={rp_wake*1e3:.0f} mm, $T_{{p}}$ = {Tp_wake:.0f} K')
     plt.legend()
 
-z0 = Iz[Iz['Iz (A.U.)'] == Iz['Iz (A.U.)'].max()]['r (mm)'].values[0] # mm
+plt.figure()
+for k in range (len(uz_fits_needletip)):
+    plt.plot(r_needletip * 1e3, uz_fits_needletip[k], label=f'Vortex {k+1}, (cbt={cbts_needletip[k]:.2e} m, uz0 ={uz0_roots_needletip[k]:.2e} m/s)')
+    plt.xlabel('r (mm)')
+    plt.ylabel('uz (m/s)')
+    plt.title(f'Cubic vortex fit to Li et al. (2021) needletip profile \n $r_{{p}}$={rp_needletip*1e3:.0f} mm, $T_{{p}}$ = {Tp_needletip:.0f} K')
+    plt.legend() 
+
+z0 = Iz[Iz['Iz (A.U.)'] == Iz['Iz (A.U.)'].max()]['r (mm)'].values[0] # mm - middle of the streamer head 
 print(f'z0 (position of maximum intensity in front profile): {z0} mm')
+
+z0_needletip = Iz_needletip[Iz_needletip['Iz (A.U.)'] == Iz_needletip['Iz (A.U.)'].max()]['r (mm)'].values[0] # mm - core of the needletip plasma
+print(f'core of needletip (position of maximum intensity in needletip profile): {z0_needletip} mm')
 
 # Experimental Data
 plt.figure()
 # plt.plot(Iz['r (mm)'], Iz['Iz (A.U.)'], label='Iz')
 # plt.plot(Iz_highres['r (mm)'], Iz_highres['Iz (A.U.)'], label='Li et al. (2021) Iz')
 plt.scatter(Iz_highres['r (mm)'], Iz_highres['Iz (A.U.)'], label='Li et al. (2021) Iz')
+plt.scatter(Iz_needletip['r (mm)'], Iz_needletip['Iz (A.U.)'], label='Li et al. (2021) Needletip Iz')
 for i in range(len(uz_fits_front)):
     plt.plot(-r_front * 1e3 + z0, alpha * cnst.q_e * n0 * uz_fits_front[i], label=f'Front Vortex {i+1}, $r_{{p}}$={rp_front*1e3:.0f} mm, $T_{{p}}$ = {Tp_front:.0f} K')
 
 for j in range (len(uz_fits_wake)):
     plt.plot(r_wake * 1e3 + z0, alpha * cnst.q_e * n0 * uz_fits_wake[j], label=f'Wake Vortex {j+1}, $r_{{p}}$={rp_wake*1e3:.0f} mm, $T_{{p}}$ = {Tp_wake:.0f} K')
+
+for k in range (len(uz_fits_needletip)):
+    plt.plot(-r_needletip * 1e3 + z0_needletip, alpha * cnst.q_e * n0 * uz_fits_needletip[k], label=f'Needletip Vortex {k+1}, $r_{{p}}$={rp_needletip*1e3:.0f} mm, $T_{{p}}$ = {Tp_needletip:.0f} K')
 
 plt.xlabel('r (mm)')
 plt.ylabel('Intensity (A.U.)')
