@@ -66,6 +66,11 @@ uzpos_list = []
 uzneg_list = []
 rpos_list = []
 rneg_list = []
+
+uedge_pos = []
+uedge_neg = []
+u0 = []
+
 for uz_df in uz_df_list:
     r_data = uz_df['r (mm)'].to_numpy() * 1e-3 # Convert to meters
     uz_data = uz_df['uz (km/s)'].to_numpy() * 1e3 # Convert to m/s
@@ -80,7 +85,16 @@ for uz_df in uz_df_list:
     rpos_list.append(rpos)
     rneg_list.append(rneg)
 
+    uedge_pos.append(uz_df.loc[uz_df['r (mm)'] == uz_df['r (mm)'].max(), 'uz (km/s)'].values[0] * 1e3) # Convert to m/s
+    # uedge_pos.append(uzpos[np.where(r_data == r_data.max())[0][0]] * 1e3) # Convert to m/s
+    uedge_neg.append(uz_df.loc[uz_df['r (mm)'] == uz_df['r (mm)'].min(), 'uz (km/s)'].values[0] * 1e3) # Convert to m/s
+    # uedge_neg.append(uzneg[np.where(r_data == r_data.min())[0][0]] * 1e3) # Convert to m/s
+    # u0.append(uz_data['uz (km/s)'].max() * 1e3) # Convert to m/s
+    u0.append(uz_df.loc[uz_df['r (mm)'].abs().idxmin(), 'uz (km/s)'] * 1e3) # Convert to m/s
 
+print(f'uedge_pos: {uedge_pos}')
+print(f'uedge_neg: {uedge_neg}')
+print(f'u0: {u0}')
 # uzpos = uz_data[r_data > 0]
 # uzneg = uz_data[r_data < 0] 
 # rpos = r_data[r_data > 0]
@@ -89,13 +103,19 @@ for uz_df in uz_df_list:
 """
 Make fits of Bennett vortices to each half-chord
 """
-# n0 = 1e23 # Plasma density [m^-3]; 1e22 - 1e23
-# Tp = 200 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
+n0 = 1e23 # Plasma density [m^-3]; 1e22 - 1e23
+# rp = 10e-3 # Pinch radius [m];   
+Tp = 200 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
 # uedge = 4e4 # Edge flow velocity [m/s]; 
 # u0 = 10e4 # Core flow velocity [m/s]; 
-# rp = 10e-3 # Pinch radius [m]; 10mm
 
-cbt = []
+cbt_pos = []
+cbt_neg = []
+
+# Manually recorded from Figure 9 of Shumlak et. al (2009) Nucl Fusion 49 075039
+rp_pos = [15e-3, 5e-3, 15e-3, 15e-3, 10e-3] # Pinch radius [m];
+rp_neg = [20e-3, 25e-3, 15e-3, 15e-3, 25e-3]
+
 uzpos_fits = []
 uzneg_fits = []
 
