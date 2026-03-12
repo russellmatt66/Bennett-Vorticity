@@ -72,6 +72,9 @@ uedge_pos = []
 uedge_neg = []
 u0 = []
 
+rp_pos = []
+rp_neg = []
+
 for uz_df in uz_df_list:
     # Doesn't seem to be a point to the below
     # r_data = uz_df['r (mm)'].to_numpy() * 1e-3 # Convert to meters
@@ -92,6 +95,8 @@ for uz_df in uz_df_list:
     # uedge_neg.append(uzneg[np.where(r_data == r_data.min())[0][0]] * 1e3) # Convert to m/s
     # u0.append(uz_data['uz (km/s)'].max() * 1e3) # Convert to m/s
     u0.append(uz_df.loc[uz_df['r (mm)'].abs().idxmin(), 'uz (km/s)'] * 1e3) # Convert to m/s
+    rp_pos.append(uz_df.loc[uz_df['r (mm)'] > 0, 'r (mm)'].max() * 1e-3) # Convert to m
+    rp_neg.append(-uz_df.loc[uz_df['r (mm)'] < 0, 'r (mm)'].min() * 1e-3) # Convert to m, make positive
 
 print(f'uedge_pos: {uedge_pos}')
 print(f'uedge_neg: {uedge_neg}')
@@ -104,9 +109,9 @@ print(f'u0: {u0}')
 """
 Make fits of Bennett vortices to each half-chord
 """
-n0 = 1e23 # Plasma density [m^-3]; 1e22 - 1e23
+n0 = 1e22 # Plasma density [m^-3]; 1e22 - 1e23
 # rp = 10e-3 # Pinch radius [m];   
-Tp = 200 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
+Tp = 150 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
 # uedge = 4e4 # Edge flow velocity [m/s]; 
 # u0 = 10e4 # Core flow velocity [m/s]; 
 
@@ -117,9 +122,9 @@ def t(tau):
 cbts_pos = []
 cbts_neg = []
 
-# Manually recorded from Figure 9 of Shumlak et. al (2009) Nucl Fusion 49 075039
-rp_pos = [15e-3, 5e-3, 15e-3, 15e-3, 10e-3] # Pinch radius [m];
-rp_neg = [20e-3, 25e-3, 15e-3, 15e-3, 25e-3]
+# Manually recorded from Figure 9 of Shumlak et. al (2009) Nucl Fusion 49 075039. Not as accurate as reading from .csv
+# rp_pos = [15e-3, 5e-3, 15e-3, 15e-3, 10e-3] # Pinch radius [m];
+# rp_neg = [20e-3, 25e-3, 15e-3, 15e-3, 25e-3]
 
 uzpos_fits = []
 uzneg_fits = []
@@ -148,30 +153,34 @@ for i in range(len(uz_df_list)):
     uzneg_temp = []
     for uz0 in uz0_temp_pos:
         cbt_pos = cpfm.cbt(n0, np.abs(uz0), rp_pos[i], Tp) # Vortex constant [m]
-        cbt_neg = cpfm.cbt(n0, np.abs(uz0), rp_neg[i], Tp) # Vortex constant [m]
         uzpos_fit = cpfm.uz_chi2cubic_posbulk(cbt_pos, np.abs(uz0), u0[i], r_uzpos[i])
-        uzneg_fit = cpfm.uz_chi2cubic_posbulk(cbt_neg, np.abs(uz0), u0[i], r_uzneg[i])
         cbts_pos_temp.append(cbt_pos)
-        cbts_neg_temp.append(cbt_neg)
         uzpos_temp.append(uzpos_fit)
+    for uz0 in uz0_temp_neg:
+        cbt_neg = cpfm.cbt(n0, np.abs(uz0), rp_neg[i], Tp) # Vortex constant [m]
+        uzneg_fit = cpfm.uz_chi2cubic_posbulk(cbt_neg, np.abs(uz0), u0[i], r_uzneg[i])
+        cbts_neg_temp.append(cbt_neg)
         uzneg_temp.append(uzneg_fit)
-
     cbts_pos.append(tuple(cbts_pos_temp))
     cbts_neg.append(tuple(cbts_neg_temp))
-    uzpos_fits.append(uzpos_temp)
-    uzneg_fits.append(uzneg_temp)
+    uzpos_fits.append(uzpos_temp) # This is a list of lists of arrays containing the analytic solutions for positive half-chord
+    uzneg_fits.append(uzneg_temp) # " " " etc.., Negative half-chord
 
     # cbt_temp = cpfm.cbt(n0, uz0_mag, rp, Tp) # Vortex constant [m]
     # print(f'cbt for uz0 = {uz0_mag} m/s: {cbt_temp} m')
     # cbt.append(cbt_temp)
-
+  
 """
 Plot
 """
 for i, uz_df in enumerate(uz_df_list):
     plt.figure()
-    plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'])
+    # plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'])
+    plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'])
     plt.title(f'Axial Velocity, Zap 2009, $\\tau$ = {uz_df["name"].iloc[0]}')
+    for j in range(len(uzpos_fits[i])):
+        plt.plot(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Pos Bulk Fit {j+1}, $\\tau$ = {uz_df["name"].iloc[0]}')
+        plt.plot(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Neg Bulk Fit {j+1}, $\\tau$ = {uz_df["name"].iloc[0]}')
     # plt.plot(rpos_list[i], uzpos_list[i])
     # plt.plot(rneg_list[i], uzneg_list[i])
     # uzpos_fit = cpfm.uz_chi2cubic_posbulk(cbt_temp, uz0_mag, u0, rpos_list[i])
