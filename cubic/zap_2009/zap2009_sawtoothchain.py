@@ -89,13 +89,19 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
             rp = (r_data[nv+1] - r_data[nv])
             # r_array = np.linspace(r_data[nv+1], r_data[nv], num_r) 
             r_array = np.linspace(0, rp, num_r) # Will shift later
-            uz0_roots = cpfm.root_solve_chi2_posbulk(uedge, u0, n0, rp, Tp)
+            if u0 < uedge:
+                uz0_roots = cpfm.root_solve_chi2_posbulk(uedge, u0, n0, rp, Tp)
+            elif u0 > uedge:
+                uz0_roots = cpfm.root_solve_chi2_negbulk(uedge, u0, n0, rp, Tp)
             analytic_solns = []
             cbts_temp = []
             for uz0 in uz0_roots:
                 cbt = cpfm.cbt(n0, np.abs(uz0), rp, Tp)
                 # print(f'cbt for uz0 = {uz0} m/s: {cbt} m')
-                analytic_solns.append(cpfm.uz_chi2cubic_posbulk(cbt, np.abs(uz0), u0, r_array))    
+                if u0 < uedge:
+                    analytic_solns.append(cpfm.uz_chi2cubic_posbulk(cbt, np.abs(uz0), u0, r_array))
+                elif u0 > uedge:
+                    analytic_solns.append(cpfm.uz_chi2cubic_negbulk(cbt, np.abs(uz0), u0, r_array))
                 cbts_temp.append(cbt)
             uz_fits.append(analytic_solns)
             r_array = np.linspace(r_data[nv+1], r_data[nv], num_r) # Shift r_array to correct location for plotting
@@ -107,13 +113,19 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
             uedge = uz_data[nv+1]
             rp = (r_data[nv] - r_data[nv+1])
             r_array = np.linspace(0, rp, num_r) # Will shift later
-            uz0_roots = cpfm.root_solve_chi2_posbulk(uedge, u0, n0, rp, Tp)
+            if u0 < uedge:
+                uz0_roots = cpfm.root_solve_chi2_posbulk(uedge, u0, n0, rp, Tp)
+            elif u0 > uedge:
+                uz0_roots = cpfm.root_solve_chi2_negbulk(uedge, u0, n0, rp, Tp)
             analytic_solns = []
             cbts_temp = []
             for uz0 in uz0_roots:
                 cbt = cpfm.cbt(n0, np.abs(uz0), rp, Tp)
                 # print(f'cbt for uz0 = {uz0} m/s: {cbt} m')
-                analytic_solns.append(cpfm.uz_chi2cubic_posbulk(cbt, np.abs(uz0), u0, r_array))
+                if u0 < uedge:
+                    analytic_solns.append(cpfm.uz_chi2cubic_posbulk(cbt, np.abs(uz0), u0, r_array))
+                elif u0 > uedge:
+                    analytic_solns.append(cpfm.uz_chi2cubic_negbulk(cbt, np.abs(uz0), u0, r_array))
                 cbts_temp.append(cbt)
             uz_fits.append(analytic_solns)
             r_array = np.linspace(r_data[nv], r_data[nv+1], num_r) # Shift r_array to correct location for plotting
@@ -136,9 +148,8 @@ def plot_vortex_chain(uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_ar
             if i == 0: # Plot experimental data first time through
                 plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'])
             plt.plot(r_arrays[i] * 1e3, uz_fits[i][j] / 1e3, label=f'Vortex {i+1}, Root {j+1}, cbt = {cbts[i][j]:.3e} m')
-        plt.title(f'Axial Velocity, Zap 2009, $\\tau$ = {uz_df["name"].iloc[0]}')
-
-    plt.legend()
+            plt.title(f'Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {uz_df["name"].iloc[0]}')
+            plt.legend()
 
 plot_vortex_chain(uz_tau_neg_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10)
 
