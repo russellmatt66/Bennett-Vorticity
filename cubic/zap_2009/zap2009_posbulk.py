@@ -179,8 +179,12 @@ for i, uz_df in enumerate(uz_df_list):
     plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'])
     plt.title(f'Axial Velocity, Zap 2009, $\\tau$ = {uz_df["name"].iloc[0]}')
     for j in range(len(uzpos_fits[i])):
-        plt.plot(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Pos Bulk Fit {j+1}, $\\tau$ = {uz_df["name"].iloc[0]}')
-        plt.plot(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Neg Bulk Fit {j+1}, $\\tau$ = {uz_df["name"].iloc[0]}')
+        plt.plot(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Root {j+1}p: uz0 = {uzpos_roots[i][j]:.3e}')
+
+    for j in range(len(uzneg_fits[i])):
+        plt.plot(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Root {j+1}n: uz0 = {uzneg_roots[i][j]:.3e}')
+    
+    plt.legend()
     # plt.plot(rpos_list[i], uzpos_list[i])
     # plt.plot(rneg_list[i], uzneg_list[i])
     # uzpos_fit = cpfm.uz_chi2cubic_posbulk(cbt_temp, uz0_mag, u0, rpos_list[i])
