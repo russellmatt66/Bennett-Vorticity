@@ -68,7 +68,10 @@ Tp = 150 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti ~ 150 eV
 
 num_r = 100
 
-def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[np.ndarray], list[list[float]]]:
+# Stiching the magnetic fields of the individual vortices together doesn't respect Ampere's Law globally because only the current enclosed 
+# by the individual vortex is considered.
+# To calculate the magnetic field of the vortex chain at a given point, we just need to consider the current enclosed. 
+def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[np.ndarray], list[list[float]], list[list[complex]]]:
     """
     Fit a chain of cubic, chi=2 vortices to the given uz data.
     """
@@ -82,12 +85,14 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
 
     uz0_allroots = []
 
+    bfields = []
+
     # ***Need to fit a chain of vortices, not just a single vortex
     N_vortices = uz_data.size - 1 # Essentially, how many cells are there = how many vortices
     nv = 0
     while nv < N_vortices:
         if (r_data[nv] < 0): # Fit left to right (negative half-plane)
-            u0 = uz_data[nv+1]
+            u0 = uz_data[nv+1] 
             uedge = uz_data[nv]
             rp = np.abs(r_data[nv+1] - r_data[nv])
             # r_array = np.linspace(r_data[nv+1], r_data[nv], num_r) 
@@ -97,20 +102,24 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
             elif u0 > uedge:
                 uz0_roots = cpfm.root_solve_chi2_negbulk(uedge, u0, n0, rp, Tp)
             analytic_solns = []
+            analytic_bfields = []
             cbts_temp = []
             for uz0 in uz0_roots:
                 cbt = cpfm.cbt(n0, np.abs(uz0), rp, Tp)
                 # print(f'cbt for uz0 = {uz0} m/s: {cbt} m')
                 if u0 < uedge:
                     analytic_solns.append(cpfm.uz_chi2cubic_posbulk(cbt, np.abs(uz0), u0, r_array))
+                    analytic_bfields.append(cpfm.btheta_chi2_posbulk(cbt, np.abs(uz0), u0, n0, r_array))
                 elif u0 > uedge:
                     analytic_solns.append(cpfm.uz_chi2cubic_negbulk(cbt, np.abs(uz0), u0, r_array))
+                    analytic_bfields.append(cpfm.btheta_chi2_negbulk(cbt, np.abs(uz0), u0, n0, r_array))
                 cbts_temp.append(cbt)
             uz_fits.append(analytic_solns)
             r_array = np.linspace(r_data[nv+1], r_data[nv], num_r) # Shift r_array to correct location for plotting
             r_arrays.append(r_array)
             cbts.append(cbts_temp)
             uz0_allroots.append(uz0_roots)
+            bfields.append(analytic_bfields)
             nv += 1
         elif (r_data[nv] > 0): # Fit right to left (positive half-plane)
             u0 = uz_data[nv]
@@ -122,37 +131,41 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
             elif u0 > uedge:
                 uz0_roots = cpfm.root_solve_chi2_negbulk(uedge, u0, n0, rp, Tp)
             analytic_solns = []
+            analytic_bfields = []
             cbts_temp = []
             for uz0 in uz0_roots:
                 cbt = cpfm.cbt(n0, np.abs(uz0), rp, Tp)
                 # print(f'cbt for uz0 = {uz0} m/s: {cbt} m')
                 if u0 < uedge:
                     analytic_solns.append(cpfm.uz_chi2cubic_posbulk(cbt, np.abs(uz0), u0, r_array))
+                    analytic_bfields.append(cpfm.btheta_chi2_posbulk(cbt, np.abs(uz0), u0, n0, r_array))
                 elif u0 > uedge:
                     analytic_solns.append(cpfm.uz_chi2cubic_negbulk(cbt, np.abs(uz0), u0, r_array))
+                    analytic_bfields.append(cpfm.btheta_chi2_negbulk(cbt, np.abs(uz0), u0, n0, r_array))
                 cbts_temp.append(cbt)
             uz_fits.append(analytic_solns)
             r_array = np.linspace(r_data[nv], r_data[nv+1], num_r) # Shift r_array to correct location for plotting
             r_arrays.append(r_array)
             cbts.append(cbts_temp)
             uz0_allroots.append(uz0_roots)
+            bfields.append(analytic_bfields)
             nv += 1
 
-    return uz_fits, r_arrays, cbts, uz0_allroots
+    return uz_fits, r_arrays, cbts, uz0_allroots, bfields
 
-swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10 = fit_vortex_chain(uz_tau_neg_0pt10)
+swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10, bfields_neg0pt10 = fit_vortex_chain(uz_tau_neg_0pt10)
 print(f'Vortex chain fitted for uz: {uz_tau_neg_0pt10["name"].iloc[0]}')
 
-swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10 = fit_vortex_chain(uz_tau_0pt10)
+swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10, bfields_0pt10 = fit_vortex_chain(uz_tau_0pt10)
 print(f'Vortex chain fitted for uz: {uz_tau_0pt10["name"].iloc[0]}')
 
-swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16 = fit_vortex_chain(uz_tau_0pt16)
+swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16, bfields_0pt16 = fit_vortex_chain(uz_tau_0pt16)
 print(f'Vortex chain fitted for uz: {uz_tau_0pt16["name"].iloc[0]}')
 
-swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34 = fit_vortex_chain(uz_tau_0pt34)
+swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34, bfields_0pt34 = fit_vortex_chain(uz_tau_0pt34)
 print(f'Vortex chain fitted for uz: {uz_tau_0pt34["name"].iloc[0]}')
 
-swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56 = fit_vortex_chain(uz_tau_0pt56)
+swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56, bfields_0pt56 = fit_vortex_chain(uz_tau_0pt56)
 print(f'Vortex chain fitted for uz: {uz_tau_0pt56["name"].iloc[0]}')
 
 nfig = 0
@@ -161,7 +174,7 @@ nfig = 0
 def t(tau: float) -> float:
     return 44 * tau + 34
 
-def plot_vortex_chain(nfig: int, uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]):
+def plot_vortex_chain(nfig: int, uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[complex]]):
     """
     Plot the given vortex chain fits against the given uz data.
     """
@@ -186,5 +199,45 @@ nfig += len(swtc_uz_0pt16[0])
 plot_vortex_chain(nfig, uz_tau_0pt34, swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34)
 nfig += len(swtc_uz_0pt34[0])
 plot_vortex_chain(nfig, uz_tau_0pt56, swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56)
+nfig += len(swtc_uz_0pt56[0])
+
+"""
+Plot magnetic fields  
+"""
+def plot_bfield_chain(nfig: int, uz_df: pd.DataFrame, bfields: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]):
+    """
+    Plot the magnetic fields corresponding to the given vortex chain fits.
+    """
+    for i in range(len(bfields)):
+        for j in range(len(bfields[i])):
+            plt.figure(j + nfig)
+            # bfield = bfields[i][j]
+            # r_array = r_arrays[i]
+            cbt = cbts[i][j]
+            uz0 = uz0_allroots[i][j]
+            plt.plot(r_arrays[i] * 1e3, np.abs(bfields[i][j]), label=f'Root {j+1}, uz0 = {uz0:.3e} m/s, cbt = {cbt:.3e} m') # negative sign is just opposite direction in bfield
+            plt.title(f'Magnetic field of Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {t(float(uz_df["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
+            plt.xlabel('Radius (mm)')
+            plt.ylabel('Magnetic Field (T)')
+            plt.legend()
+
+"""
+Compare these plots to the fields obtained by solving Ampere's law.
+
+I think the problem with these plots is that they solve the magnetic field for a single vortex, not a chain of vortices.
+Therefore, they don't capture the full magnetic field structure of the system, because they are treating each vortex like it's surrounded by vacuum.
+
+Put simply, the magnetic field of a vortex chain is not just the sum of the fields of individual vortices in their own domains because then
+globally Ampere's Law is not being respected. 
+"""
+# plot_bfield_chain(nfig, uz_tau_neg_0pt10, bfields_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
+# nfig += len(bfields_neg0pt10[0])
+# plot_bfield_chain(nfig, uz_tau_0pt10, bfields_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
+# nfig += len(bfields_0pt10[0])
+# plot_bfield_chain(nfig, uz_tau_0pt16, bfields_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16)
+# nfig += len(bfields_0pt16[0])   
+# plot_bfield_chain(nfig, uz_tau_0pt34, bfields_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34)
+# nfig += len(bfields_0pt34[0])
+# plot_bfield_chain(nfig, uz_tau_0pt56, bfields_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56)
 
 plt.show()
