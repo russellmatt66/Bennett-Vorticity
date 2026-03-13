@@ -79,6 +79,8 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
     r_arrays = []
     cbts = []
 
+    uz0_allroots = []
+
     # ***Need to fit a chain of vortices, not just a single vortex
     N_vortices = uz_data.size - 1 # Essentially, how many cells are there = how many vortices
     nv = 0
@@ -86,7 +88,7 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
         if (r_data[nv] < 0): # Fit left to right (negative half-plane)
             u0 = uz_data[nv+1]
             uedge = uz_data[nv]
-            rp = (r_data[nv+1] - r_data[nv])
+            rp = np.abs(r_data[nv+1] - r_data[nv])
             # r_array = np.linspace(r_data[nv+1], r_data[nv], num_r) 
             r_array = np.linspace(0, rp, num_r) # Will shift later
             if u0 < uedge:
@@ -107,11 +109,12 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
             r_array = np.linspace(r_data[nv+1], r_data[nv], num_r) # Shift r_array to correct location for plotting
             r_arrays.append(r_array)
             cbts.append(cbts_temp)
+            uz0_allroots.append(uz0_roots)
             nv += 1
         elif (r_data[nv] > 0): # Fit right to left (positive half-plane)
             u0 = uz_data[nv]
             uedge = uz_data[nv+1]
-            rp = (r_data[nv] - r_data[nv+1])
+            rp = np.abs((r_data[nv] - r_data[nv+1]))
             r_array = np.linspace(0, rp, num_r) # Will shift later
             if u0 < uedge:
                 uz0_roots = cpfm.root_solve_chi2_posbulk(uedge, u0, n0, rp, Tp)
@@ -131,14 +134,15 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
             r_array = np.linspace(r_data[nv], r_data[nv+1], num_r) # Shift r_array to correct location for plotting
             r_arrays.append(r_array)
             cbts.append(cbts_temp)
+            uz0_allroots.append(uz0_roots)
             nv += 1
 
-    return uz_fits, r_arrays, cbts
+    return uz_fits, r_arrays, cbts, uz0_allroots
 
-swtc_uz_0pt10, r_0pt10, cbts_0pt10 = fit_vortex_chain(uz_tau_neg_0pt10)
+swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10 = fit_vortex_chain(uz_tau_neg_0pt10)
 print(f'Vortex chain fitted for uz: {uz_tau_neg_0pt10["name"].iloc[0]}')
 
-def plot_vortex_chain(uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]]):
+def plot_vortex_chain(uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]):
     """
     Plot the given vortex chain fits against the given uz data.
     """
@@ -146,11 +150,14 @@ def plot_vortex_chain(uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_ar
         for j in range(len(uz_fits[i])):
             plt.figure(j)
             if i == 0: # Plot experimental data first time through
-                plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'])
-            plt.plot(r_arrays[i] * 1e3, uz_fits[i][j] / 1e3, label=f'Vortex {i+1}, Root {j+1}, cbt = {cbts[i][j]:.3e} m')
+                # plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'])
+                plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'], 'b--', label='Experimental data')
+            plt.plot(r_arrays[i] * 1e3, uz_fits[i][j] / 1e3, label=f'Root {j+1}, uz0 = {uz0_allroots[i][j]:.3e} m/s, cbt = {cbts[i][j]:.3e} m')
             plt.title(f'Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {uz_df["name"].iloc[0]}')
+            plt.xlabel('Radius (mm)')
+            plt.ylabel('Axial Velocity (km/s)')
             plt.legend()
 
-plot_vortex_chain(uz_tau_neg_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10)
+plot_vortex_chain(uz_tau_neg_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
 
 plt.show()
