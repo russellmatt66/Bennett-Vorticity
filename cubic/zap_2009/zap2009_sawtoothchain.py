@@ -17,6 +17,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from sklearn.metrics import mean_squared_error
+# from zap2009_pureflow import t # Don't do this, totally destroys execution
 
 uz_data = pd.read_csv('../../experimental_data/zap_2009/zap2009_uz_fig9.csv', header=0, skiprows=[1])
 
@@ -139,25 +140,51 @@ def fit_vortex_chain(uz_df: pd.DataFrame) -> tuple[list[list[np.ndarray]], list[
 
     return uz_fits, r_arrays, cbts, uz0_allroots
 
-swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10 = fit_vortex_chain(uz_tau_neg_0pt10)
+swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10 = fit_vortex_chain(uz_tau_neg_0pt10)
 print(f'Vortex chain fitted for uz: {uz_tau_neg_0pt10["name"].iloc[0]}')
 
-def plot_vortex_chain(uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]):
+swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10 = fit_vortex_chain(uz_tau_0pt10)
+print(f'Vortex chain fitted for uz: {uz_tau_0pt10["name"].iloc[0]}')
+
+swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16 = fit_vortex_chain(uz_tau_0pt16)
+print(f'Vortex chain fitted for uz: {uz_tau_0pt16["name"].iloc[0]}')
+
+swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34 = fit_vortex_chain(uz_tau_0pt34)
+print(f'Vortex chain fitted for uz: {uz_tau_0pt34["name"].iloc[0]}')
+
+swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56 = fit_vortex_chain(uz_tau_0pt56)
+print(f'Vortex chain fitted for uz: {uz_tau_0pt56["name"].iloc[0]}')
+
+nfig = 0
+
+# Importing this breaks the code for some reason 
+def t(tau: float) -> float:
+    return 44 * tau + 34
+
+def plot_vortex_chain(nfig: int, uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]):
     """
     Plot the given vortex chain fits against the given uz data.
     """
     for i in range(len(uz_fits)):
         for j in range(len(uz_fits[i])):
-            plt.figure(j)
+            plt.figure(j + nfig)
             if i == 0: # Plot experimental data first time through
                 # plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'])
                 plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'], 'b--', label='Experimental data')
             plt.plot(r_arrays[i] * 1e3, uz_fits[i][j] / 1e3, label=f'Root {j+1}, uz0 = {uz0_allroots[i][j]:.3e} m/s, cbt = {cbts[i][j]:.3e} m')
-            plt.title(f'Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {uz_df["name"].iloc[0]}')
+            plt.title(f'Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {t(float(uz_df["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
             plt.xlabel('Radius (mm)')
             plt.ylabel('Axial Velocity (km/s)')
             plt.legend()
-
-plot_vortex_chain(uz_tau_neg_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
+         
+plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
+nfig += len(swtc_uz_neg0pt10[0]) # Cubic, chi=2 vortices will all have four roots
+plot_vortex_chain(nfig, uz_tau_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
+nfig += len(swtc_uz_0pt10[0]) 
+plot_vortex_chain(nfig, uz_tau_0pt16, swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16)
+nfig += len(swtc_uz_0pt16[0])
+plot_vortex_chain(nfig, uz_tau_0pt34, swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34)
+nfig += len(swtc_uz_0pt34[0])
+plot_vortex_chain(nfig, uz_tau_0pt56, swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56)
 
 plt.show()
