@@ -199,6 +199,7 @@ def save_vortex_chain(uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray
     # For example, could save each fit as a separate column, with the corresponding r values in another column
     # Could also save the parameters of each fit (cbt, uz0) in separate columns for easy reference
     vortex_df = pd.DataFrame()
+
     segment_dfs = []
     for i in range(len(uz_fits)):
         segment_data = {
@@ -222,7 +223,6 @@ save_vortex_chain(swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10, '../..
 save_vortex_chain(swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt16.csv')
 save_vortex_chain(swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt34.csv')
 save_vortex_chain(swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt56.csv')
-
 
 # PLOT
 # plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
