@@ -189,47 +189,84 @@ def plot_vortex_chain(nfig: int, uz_df: pd.DataFrame, uz_fits: list[list[np.ndar
             plt.xlabel('Radius (mm)')
             plt.ylabel('Axial Velocity (km/s)')
             plt.legend()
-         
-plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
-nfig += len(swtc_uz_neg0pt10[0]) # Cubic, chi=2 vortices will all have four roots
-plot_vortex_chain(nfig, uz_tau_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
-nfig += len(swtc_uz_0pt10[0]) 
-plot_vortex_chain(nfig, uz_tau_0pt16, swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16)
-nfig += len(swtc_uz_0pt16[0])
-plot_vortex_chain(nfig, uz_tau_0pt34, swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34)
-nfig += len(swtc_uz_0pt34[0])
-plot_vortex_chain(nfig, uz_tau_0pt56, swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56)
-nfig += len(swtc_uz_0pt56[0])
+
+def save_vortex_chain(uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[complex]], filename: str) -> None:
+    """
+    Save the given vortex chain fits to a CSV file.
+    ***Yes, it is inefficient to save the roots and cbts in every row, but the coding is simpler this way.
+    """
+    # ***Need to save the fits in a way that makes it easy to plot them later, and also to compare them to the experimental data
+    # For example, could save each fit as a separate column, with the corresponding r values in another column
+    # Could also save the parameters of each fit (cbt, uz0) in separate columns for easy reference
+    vortex_df = pd.DataFrame()
+    segment_dfs = []
+    for i in range(len(uz_fits)):
+        segment_data = {
+            'r (mm)': r_arrays[i] * 1e3
+        }
+        for j in range(len(uz_fits[i])):
+            segment_data[f'uz_root{j+1} (km/s)'] = uz_fits[i][j] / 1e3
+            segment_data[f'cbt_root{j+1} (m)'] = cbts[i][j]
+            segment_data[f'uz0_root{j+1} (m/s)'] = uz0_allroots[i][j]
+        segment_df = pd.DataFrame(segment_data)
+        segment_dfs.append(segment_df)
+    
+    vortex_df = pd.concat(segment_dfs, ignore_index=True)
+    vortex_df = vortex_df.sort_values(by='r (mm)', ascending=True).reset_index(drop=True)
+    vortex_df.to_csv(filename, index=False)
+    pass
+
+# SAVE
+save_vortex_chain(swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_neg_0pt10.csv')
+save_vortex_chain(swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt10.csv')
+save_vortex_chain(swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt16.csv')
+save_vortex_chain(swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt34.csv')
+save_vortex_chain(swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt56.csv')
+
+
+# PLOT
+# plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
+# nfig += len(swtc_uz_neg0pt10[0]) # Cubic, chi=2 vortices will all have four roots
+# plot_vortex_chain(nfig, uz_tau_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
+# nfig += len(swtc_uz_0pt10[0]) 
+# plot_vortex_chain(nfig, uz_tau_0pt16, swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16)
+# nfig += len(swtc_uz_0pt16[0])
+# plot_vortex_chain(nfig, uz_tau_0pt34, swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34)
+# nfig += len(swtc_uz_0pt34[0])
+# plot_vortex_chain(nfig, uz_tau_0pt56, swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56)
+# nfig += len(swtc_uz_0pt56[0])
 
 """
 Solve for magnetic fields across both half-chords, and plot
+o Below concerns need to be separated.
+o Save off the fits, and then do the magnetic field solve separately. 
 """
-def Iencl(uz: np.ndarray, rprime: np.ndarray) -> np.ndarray:
-    term1 = 2.0 * np.pi * cnst.q_e * n0 
-    return -term1 * np.trapezoid(uz * rprime, rprime) 
+# def Iencl(uz: np.ndarray, rprime: np.ndarray) -> np.ndarray:
+#     term1 = 2.0 * np.pi * cnst.q_e * n0 
+#     return -term1 * np.trapezoid(uz * rprime, rprime) 
 
-def Btheta(Iencl: np.ndarray, r: np.ndarray) -> np.ndarray:
-    # mu0 = 4 * np.pi * 1e-7
-    return cnst.mu0 * Iencl / (2 * np.pi * r)
+# def Btheta(Iencl: np.ndarray, r: np.ndarray) -> np.ndarray:
+#     # mu0 = 4 * np.pi * 1e-7
+#     return cnst.mu0 * Iencl / (2 * np.pi * r)
 
-def plot_bfield_chain(nfig: int, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]) -> None:
-    r_array = np.concatenate(r_arrays)
-    Iencl_array = []
-    bfield_array = []
-    # for i in range(len(uz_fits)):
-    #     for j in range(len(uz_fits[i])):
-    for j, segments in enumerate(zip(*uz_fits)):
-        uz = np.concatenate(segments)
-        Iencl_rootj = Iencl(uz, np.abs(r_array))
-        bfield = Btheta(Iencl_rootj, np.abs(r_array))
-        Iencl_array.append(Iencl_rootj)
-        bfield_array.append(bfield)
-        plt.figure(j + nfig)
-        plt.plot(r_array * 1e3, bfield_array[j] * 1e3, label=f'Root {j+1}')
-        # , uz0 = {uz0_allroots[i][j]:.3e} m/s, cbt = {cbts[i][j]:.3e} m')
-        plt.legend()
+# def plot_bfield_chain(nfig: int, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]) -> None:
+#     r_array = np.concatenate(r_arrays)
+#     Iencl_array = []
+#     bfield_array = []
+#     # for i in range(len(uz_fits)):
+#     #     for j in range(len(uz_fits[i])):
+#     for j, segments in enumerate(zip(*uz_fits)):
+#         uz = np.concatenate(segments)
+#         Iencl_rootj = Iencl(uz, np.abs(r_array))
+#         bfield = Btheta(Iencl_rootj, np.abs(r_array))
+#         Iencl_array.append(Iencl_rootj)
+#         bfield_array.append(bfield)
+#         plt.figure(j + nfig)
+#         plt.plot(r_array * 1e3, bfield_array[j] * 1e3, label=f'Root {j+1}')
+#         # , uz0 = {uz0_allroots[i][j]:.3e} m/s, cbt = {cbts[i][j]:.3e} m')
+#         plt.legend()
 
-plot_bfield_chain(nfig, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
+# plot_bfield_chain(nfig, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
 
 """
 Compare these plots to the fields obtained by solving Ampere's law.
