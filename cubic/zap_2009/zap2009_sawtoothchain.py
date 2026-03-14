@@ -202,24 +202,34 @@ plot_vortex_chain(nfig, uz_tau_0pt56, swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_al
 nfig += len(swtc_uz_0pt56[0])
 
 """
-Plot magnetic fields  
+Solve for magnetic fields across both half-chords, and plot
 """
-def plot_bfield_chain(nfig: int, uz_df: pd.DataFrame, bfields: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]):
-    """
-    Plot the magnetic fields corresponding to the given vortex chain fits.
-    """
-    for i in range(len(bfields)):
-        for j in range(len(bfields[i])):
-            plt.figure(j + nfig)
-            # bfield = bfields[i][j]
-            # r_array = r_arrays[i]
-            cbt = cbts[i][j]
-            uz0 = uz0_allroots[i][j]
-            plt.plot(r_arrays[i] * 1e3, np.abs(bfields[i][j]), label=f'Root {j+1}, uz0 = {uz0:.3e} m/s, cbt = {cbt:.3e} m') # negative sign is just opposite direction in bfield
-            plt.title(f'Magnetic field of Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {t(float(uz_df["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
-            plt.xlabel('Radius (mm)')
-            plt.ylabel('Magnetic Field (T)')
-            plt.legend()
+def Iencl(uz: np.ndarray, rprime: np.ndarray) -> np.ndarray:
+    term1 = 2.0 * np.pi * cnst.q_e * n0 
+    return -term1 * np.trapezoid(uz * rprime, rprime) 
+
+def Btheta(Iencl: np.ndarray, r: np.ndarray) -> np.ndarray:
+    # mu0 = 4 * np.pi * 1e-7
+    return cnst.mu0 * Iencl / (2 * np.pi * r)
+
+def plot_bfield_chain(nfig: int, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]) -> None:
+    r_array = np.concatenate(r_arrays)
+    Iencl_array = []
+    bfield_array = []
+    # for i in range(len(uz_fits)):
+    #     for j in range(len(uz_fits[i])):
+    for j, segments in enumerate(zip(*uz_fits)):
+        uz = np.concatenate(segments)
+        Iencl_rootj = Iencl(uz, np.abs(r_array))
+        bfield = Btheta(Iencl_rootj, np.abs(r_array))
+        Iencl_array.append(Iencl_rootj)
+        bfield_array.append(bfield)
+        plt.figure(j + nfig)
+        plt.plot(r_array * 1e3, bfield_array[j] * 1e3, label=f'Root {j+1}')
+        # , uz0 = {uz0_allroots[i][j]:.3e} m/s, cbt = {cbts[i][j]:.3e} m')
+        plt.legend()
+
+plot_bfield_chain(nfig, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
 
 """
 Compare these plots to the fields obtained by solving Ampere's law.
@@ -230,6 +240,23 @@ Therefore, they don't capture the full magnetic field structure of the system, b
 Put simply, the magnetic field of a vortex chain is not just the sum of the fields of individual vortices in their own domains because then
 globally Ampere's Law is not being respected. 
 """
+# def plot_bfield_chain(nfig: int, uz_df: pd.DataFrame, bfields: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[float]]):
+#     """
+#     Plot the magnetic fields corresponding to the given vortex chain fits.
+#     """
+#     for i in range(len(bfields)):
+#         for j in range(len(bfields[i])):
+#             plt.figure(j + nfig)
+#             # bfield = bfields[i][j]
+#             # r_array = r_arrays[i]
+#             cbt = cbts[i][j]
+#             uz0 = uz0_allroots[i][j]
+#             plt.plot(r_arrays[i] * 1e3, np.abs(bfields[i][j]), label=f'Root {j+1}, uz0 = {uz0:.3e} m/s, cbt = {cbt:.3e} m') # negative sign is just opposite direction in bfield
+#             plt.title(f'Magnetic field of Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {t(float(uz_df["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
+#             plt.xlabel('Radius (mm)')
+#             plt.ylabel('Magnetic Field (T)')
+#             plt.legend()
+
 # plot_bfield_chain(nfig, uz_tau_neg_0pt10, bfields_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
 # nfig += len(bfields_neg0pt10[0])
 # plot_bfield_chain(nfig, uz_tau_0pt10, bfields_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
