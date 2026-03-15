@@ -24,10 +24,12 @@ uzfit_0pt16 = pd.read_csv('../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau
 uzfit_0pt34 = pd.read_csv('../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt34.csv')
 uzfit_0pt56 = pd.read_csv('../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt56.csv')
 
-n0 = 1e22
+uzfits = [uzfit_neg0pt10, uzfit_0pt10, uzfit_0pt16, uzfit_0pt34, uzfit_0pt56]
+
+n0 = 1e22 # Plasma density [m^-3]; 1e22 - 1e23
 
 # Solve for the magnetic field
-def solve_bfield(uzfit: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
+def solve_bfield(uzfit: pd.DataFrame, root: str) -> tuple[np.ndarray, np.ndarray]:
     """
     Solve for the magnetic field using the current density from the fitted velocity profiles.
     """
@@ -38,7 +40,7 @@ def solve_bfield(uzfit: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
     
     # Positive half-chord 
     r_pos = uzfit['r (mm)'].to_numpy()[uzfit['r (mm)'] > 0] * 1e-3 # Convert to meters
-    uz_pos = uzfit['uz_root1 (km/s)'].to_numpy()[uzfit['r (mm)'] > 0] * 1e3 # Convert to m/s
+    uz_pos = uzfit[f'uz_{root} (km/s)'].to_numpy()[uzfit['r (mm)'] > 0] * 1e3 # Convert to m/s
     J_pos = n0 * cnst.q_e * uz_pos # Current density [A/m^2]
     Iencl_pos = 2 * np.pi * cumulative_trapezoid(J_pos * r_pos, r_pos, initial=0) # Enclosed current [A]
     B_pos = cnst.mu0 * Iencl_pos / (2 * np.pi * r_pos) # Magnetic field [T]
@@ -48,7 +50,7 @@ def solve_bfield(uzfit: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
     # Negative half-chord
     r_neg = np.abs(uzfit['r (mm)'].to_numpy()[uzfit['r (mm)'] < 0]) * 1e-3 # Take absolute value of radius for negative half-chord and convert to meters
     r_neg = r_neg[::-1] # Reverse the order of r_neg for correct ordering from center outwards
-    uz_neg = uzfit['uz_root1 (km/s)'].to_numpy()[uzfit['r (mm)'] < 0] * 1e3 # Convert to m/s
+    uz_neg = uzfit[f'uz_{root} (km/s)'].to_numpy()[uzfit['r (mm)'] < 0] * 1e3 # Convert to m/s
     J_neg = n0 * cnst.q_e * uz_neg # Current density [A/m^2]
     Iencl_neg = 2 * np.pi * cumulative_trapezoid(J_neg * r_neg, r_neg, initial=0) # Enclosed current [A]
     B_neg = cnst.mu0 * Iencl_neg / (2 * np.pi * r_neg) # Magnetic field [T]
@@ -59,7 +61,19 @@ def solve_bfield(uzfit: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
     r_res = np.concatenate((-r_neg[::-1], r_pos)) # Combine negative and positive half-chords, reversing the negative half for correct ordering and negating the radius for the negative half
     return B_res, r_res
 
-# Plot the results
-plt.plot(solve_bfield(uzfit_neg0pt10)[1] * 1e3, solve_bfield(uzfit_neg0pt10)[0], label='tau = -0.10')
+""" 
+Plot the results
+***Plot all the different roots on the same plot
+"""
+tau = [-0.10, 0.10, 0.16, 0.34, 0.56]
+roots = ['root1', 'root2', 'root3', 'root4']
+for i, uzfit in enumerate(uzfits):
+    plt.figure(i)
+    for root in roots:
+        plt.plot(solve_bfield(uzfit, root)[1] * 1e3, solve_bfield(uzfit, root)[0], label=f'{root}')
+    plt.title(f'Zap 2009 Vortex chain fit magnetic field, $\\tau$ = {tau[i]:.2f}, Nr = {len(uzfit)}')
+    plt.xlabel('Radius (mm)')
+    plt.ylabel('Magnetic Field (T)')
+    plt.legend()
 
 plt.show()
