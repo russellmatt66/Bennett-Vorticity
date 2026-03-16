@@ -76,6 +76,13 @@ rp_pos = []
 rp_neg = []
 
 r_core = [] # location of the pinch core based on the minimum velocity of the data [m]
+rp_core_pos = [] # Pinch radius of the positive half-chord based on the location of the minimum velocity of the data [m]
+rp_core_neg = [] # Pinch radius of the negative half-chord based on the location of the minimum velocity of the data [m]
+
+r_balance = [] # point at which the positive and negative half-chords will have the same sized pinch radius
+rp_balance_pos = [] # Pinch radius of the positive half-chord at the balance point
+rp_balance_neg = [] # Pinch radius of the negative half-chord at the balance point
+# Technically, the above lists (should be) are the same
 
 for uz_df in uz_df_list:
     # Doesn't seem to be a point to the below
@@ -98,8 +105,18 @@ for uz_df in uz_df_list:
     # u0.append(uz_data['uz (km/s)'].max() * 1e3) # Convert to m/s
     u0.append(uz_df.loc[uz_df['r (mm)'].abs().idxmin(), 'uz (km/s)'] * 1e3) # Convert to m/s
     r_core.append(uz_df.loc[uz_df['uz (km/s)'].idxmin(), 'r (mm)'] * 1e-3) # Convert to m
+    length = uz_df.loc[uz_df['r (mm)'].abs().idxmax(), 'r (mm)'] - uz_df.loc[uz_df['r (mm)'].abs().idxmin(), 'r (mm)'] * 1e-3
+    uz_df_core = uz_df.copy() # is this bad?
+    uz_df_balance = uz_df.copy()
+    uz_df_core['r (mm)'] -= r_core[-1] * 1e3 # Shift r so that core is at r=0
+    rp_core_pos.append(uz_df_core.loc[uz_df_core['r (mm)'] > 0, 'r (mm)'].max() * 1e-3) # Convert to m
+    rp_core_neg.append(-uz_df_core.loc[uz_df_core['r (mm)'] < 0, 'r (mm)'].min() * 1e-3) # Convert to m, make positive
     rp_pos.append(uz_df.loc[uz_df['r (mm)'] > 0, 'r (mm)'].max() * 1e-3) # Convert to m
     rp_neg.append(-uz_df.loc[uz_df['r (mm)'] < 0, 'r (mm)'].min() * 1e-3) # Convert to m, make positive
+    r_balance.append(0.5 * (rp_pos[-1] + np.abs(rp_neg[-1]))) # Balance point is at the location where the positive and negative half-chords have the same sized pinch radius
+    uz_df_balance['r (mm)'] -= r_balance[-1] * 1e3 # Shift r so that balance point is at r=0
+    rp_balance_pos.append(uz_df_balance.loc[uz_df_balance['r (mm)'] > 0, 'r (mm)'].max() * 1e-3) # Convert to m
+    rp_balance_neg.append(-uz_df_balance.loc[uz_df_balance['r (mm)'] < 0, 'r (mm)'].min() * 1e-3) # Convert to m, make positive
 
 print(f'uedge_pos: {uedge_pos}')
 print(f'uedge_neg: {uedge_neg}')
