@@ -111,7 +111,9 @@ Make fits of Bennett vortices to each half-chord
 """
 n0 = 1e22 # Plasma density [m^-3]; 1e22 - 1e23
 # rp = 10e-3 # Pinch radius [m];   
+T_FUDGE_FACTOR = 8
 Tp = 150 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
+Tp *= T_FUDGE_FACTOR
 # uedge = 4e4 # Edge flow velocity [m/s]; 
 # u0 = 10e4 # Core flow velocity [m/s]; 
 
@@ -175,19 +177,53 @@ Plot
 """
 for i, uz_df in enumerate(uz_df_list):
     plt.figure()
-    # plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'])
-    plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'])
-    plt.title(f'Axial Velocity, Zap 2009, $\\tau$ = {uz_df["name"].iloc[0]}')
+    plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'], label='Experimental data', color='blue')
+    # plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'], label='Experimental data', color='blue')
+    plt.title(f'Axial Velocity, Zap 2009, $\\tau$ = {uz_df["name"].iloc[0]}, n0 = {n0:.1e} m$^{{-3}}$, $T_p$ = {Tp / cnst.eV_to_K:.1f} eV')
     for j in range(len(uzpos_fits[i])):
-        plt.plot(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Root {j+1}p: uz0 = {uzpos_roots[i][j]:.3e}')
+        # plt.plot(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Root {j+1}p: uz0 = {uzpos_roots[i][j]:.3e} m/s, cbt = {cbts_pos[i][j]:.3e} m ')
+        plt.scatter(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Root {j+1}p: uz0 = {uzpos_roots[i][j]:.3e} m/s, cbt = {cbts_pos[i][j]:.3e} m ')
 
     for j in range(len(uzneg_fits[i])):
-        plt.plot(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Root {j+1}n: uz0 = {uzneg_roots[i][j]:.3e}')
-    
+        # plt.plot(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Root {j+1}n: uz0 = {uzneg_roots[i][j]:.3e} m/s, cbt = {cbts_neg[i][j]:.3e} m ')
+        plt.scatter(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Root {j+1}n: uz0 = {uzneg_roots[i][j]:.3e} m/s, cbt = {cbts_neg[i][j]:.3e} m ')
+    plt.ylabel('Axial Velocity (km/s)')
+    plt.xlabel('Radius (mm)')
     plt.legend()
     # plt.plot(rpos_list[i], uzpos_list[i])
     # plt.plot(rneg_list[i], uzneg_list[i])
     # uzpos_fit = cpfm.uz_chi2cubic_posbulk(cbt_temp, uz0_mag, u0, rpos_list[i])
     # uzneg_fit = cpfm.uz_chi2cubic_negbulk(cbt_temp, uz0_mag, u0, -rneg_list[i]) # Make rneg positive for calculating
+
+# ALL ON THE SAME PLOT   
+plt.figure()
+
+experimental_colors = ['black', 'red', 'green', 'blue', 'purple']
+
+num_df = len(uz_df_list)
+max_roots_pos = max(len(roots) for roots in uzpos_roots)
+max_roots_neg = max(len(roots) for roots in uzneg_roots)
+max_roots = max(max_roots_pos, max_roots_neg)
+
+num_colors = 2 * num_df * max_roots # We have solutions in both positive and negative half-chords, so multiply by 2
+
+colors = plt.cm.tab20(np.linspace(0, 1, num_colors)) # Use a colormap to generate distinct colors for each root
+
+plt.title(f'Axial Velocity Zap 2009, n0 = {n0:.1e} m$^{{-3}}$, $T_p$ = {Tp / cnst.eV_to_K:.1f} eV')
+for i, uz_df in enumerate(uz_df_list):
+    plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'], label=f'$\\tau$ = {uz_df["name"].iloc[0]}', color=experimental_colors[i])
     
+    for j in range(len(uzpos_fits[i])):
+        # plt.plot(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Root {j+1}p: uz0 = {uzpos_roots[i][j]:.3e} m/s, cbt = {cbts_pos[i][j]:.3e} m ')
+        # plt.scatter(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Root {j+1}p: uz0 = {uzpos_roots[i][j]:.3e} m/s, cbt = {cbts_pos[i][j]:.3e} m ')
+        plt.scatter(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, color=colors[i * max_roots + j])
+
+    for j in range(len(uzneg_fits[i])):
+        # plt.plot(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Root {j+1}n: uz0 = {uzneg_roots[i][j]:.3e} m/s, cbt = {cbts_neg[i][j]:.3e} m ')
+        # plt.scatter(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Root {j+1}n: uz0 = {uzneg_roots[i][j]:.3e} m/s, cbt = {cbts_neg[i][j]:.3e} m ')
+        plt.scatter(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, color=colors[i * max_roots + j + num_colors // 2]) # Offset to the other half of the colorspace
+
+    plt.ylabel('Axial Velocity (km/s)')
+    plt.xlabel('Radius (mm)')
+    plt.legend()
 plt.show()

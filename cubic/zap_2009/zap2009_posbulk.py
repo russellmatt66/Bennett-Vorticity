@@ -75,6 +75,8 @@ u0 = []
 rp_pos = []
 rp_neg = []
 
+r_core = [] # location of the pinch core based on the minimum velocity of the data [m]
+
 for uz_df in uz_df_list:
     # Doesn't seem to be a point to the below
     # r_data = uz_df['r (mm)'].to_numpy() * 1e-3 # Convert to meters
@@ -95,6 +97,7 @@ for uz_df in uz_df_list:
     # uedge_neg.append(uzneg[np.where(r_data == r_data.min())[0][0]] * 1e3) # Convert to m/s
     # u0.append(uz_data['uz (km/s)'].max() * 1e3) # Convert to m/s
     u0.append(uz_df.loc[uz_df['r (mm)'].abs().idxmin(), 'uz (km/s)'] * 1e3) # Convert to m/s
+    r_core.append(uz_df.loc[uz_df['uz (km/s)'].idxmin(), 'r (mm)'] * 1e-3) # Convert to m
     rp_pos.append(uz_df.loc[uz_df['r (mm)'] > 0, 'r (mm)'].max() * 1e-3) # Convert to m
     rp_neg.append(-uz_df.loc[uz_df['r (mm)'] < 0, 'r (mm)'].min() * 1e-3) # Convert to m, make positive
 
