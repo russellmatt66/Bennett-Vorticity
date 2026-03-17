@@ -51,11 +51,11 @@ uz_tau_0pt56 = pd.DataFrame({
     'name': '0.56'
 }).dropna()
 
-print(f'uz_tau_neg_0pt10: {uz_tau_neg_0pt10}')
-print(f'uz_tau_0pt10: {uz_tau_0pt10}')
-print(f'uz_tau_0pt16: {uz_tau_0pt16}')
-print(f'uz_tau_0pt34: {uz_tau_0pt34}')
-print(f'uz_tau_0pt56: {uz_tau_0pt56}')
+# print(f'uz_tau_neg_0pt10: {uz_tau_neg_0pt10}')
+# print(f'uz_tau_0pt10: {uz_tau_0pt10}')
+# print(f'uz_tau_0pt16: {uz_tau_0pt16}')
+# print(f'uz_tau_0pt34: {uz_tau_0pt34}')
+# print(f'uz_tau_0pt56: {uz_tau_0pt56}')
 
 # uz_data.columns = ['Radius (mm)', 'uz (10^{4} m / s)']
 
@@ -110,18 +110,18 @@ for uz_df in uz_df_list:
     # u0.append(uz_data['uz (km/s)'].max() * 1e3) # Convert to m/s
     u0.append(uz_df.loc[uz_df['r (mm)'].abs().idxmin(), 'uz (km/s)'] * 1e3) # Convert to m/s
     r_core.append(uz_df.loc[uz_df['uz (km/s)'].idxmin(), 'r (mm)'] * 1e-3) # Convert to m
-    # length = uz_df.loc[uz_df['r (mm)'].abs().idxmax(), 'r (mm)'] - uz_df.loc[uz_df['r (mm)'].abs().idxmin(), 'r (mm)'] * 1e-3
+    length = (uz_df.loc[uz_df['r (mm)'].abs().idxmax(), 'r (mm)'] - uz_df.loc[uz_df['r (mm)'].abs().idxmin(), 'r (mm)']) * 1e-3
     uz_df_core = uz_df.copy() # is this bad?
     uz_df_balance = uz_df.copy()
     uz_df_core['r (mm)'] -= r_core[-1] * 1e3 # Shift r so that core is at r=0
-    u0_core.append(uz_df_core.loc[uz_df_core['r (mm)'].abs().idxmin(), 'uz (km/s)'].values[0] * 1e3) # Convert to m/s
+    u0_core.append(uz_df_core.loc[uz_df_core['r (mm)'].abs().idxmin(), 'uz (km/s)'] * 1e3) # Convert to m/s
     rp_core_pos.append(uz_df_core.loc[uz_df_core['r (mm)'] > 0, 'r (mm)'].max() * 1e-3) # Convert to m
     rp_core_neg.append(-uz_df_core.loc[uz_df_core['r (mm)'] < 0, 'r (mm)'].min() * 1e-3) # Convert to m, make positive
     rp_pos.append(uz_df.loc[uz_df['r (mm)'] > 0, 'r (mm)'].max() * 1e-3) # Convert to m
     rp_neg.append(-uz_df.loc[uz_df['r (mm)'] < 0, 'r (mm)'].min() * 1e-3) # Convert to m, make positive
-    r_balance.append(0.5 * (rp_pos[-1] + np.abs(rp_neg[-1]))) # Balance point is at the location where the positive and negative half-chords have the same sized pinch radius
+    r_balance.append(np.abs(uz_df_balance.loc[uz_df_balance['r (mm)'].abs().idxmin(), 'r (mm)'] - 0.5 * length) * 1e-3) # Convert to m, find the point at which the positive and negative half-chords have the same sized pinch radius
     uz_df_balance['r (mm)'] -= r_balance[-1] * 1e3 # Shift r so that balance point is at r=0
-    u0_balance.append(uz_df_balance.loc[uz_df_balance['r (mm)'].abs().idxmin(), 'uz (km/s)'].values[0] * 1e3) # Convert to m/s
+    u0_balance.append(uz_df_balance.loc[uz_df_balance['r (mm)'].abs().idxmin(), 'uz (km/s)'] * 1e3) # Convert to m/s
     rp_balance_pos.append(uz_df_balance.loc[uz_df_balance['r (mm)'] > 0, 'r (mm)'].max() * 1e-3) # Convert to m
     rp_balance_neg.append(-uz_df_balance.loc[uz_df_balance['r (mm)'] < 0, 'r (mm)'].min() * 1e-3) # Convert to m, make positive
     uz_df_list_core.append(uz_df_core)
@@ -134,6 +134,13 @@ print(f'u0: {u0}')
 # uzneg = uz_data[r_data < 0] 
 # rpos = r_data[r_data > 0]
 # rneg = r_data[r_data < 0] 
+
+core_df = pd.concat([df.reset_index(drop=True) for df in uz_df_list_core], axis=1)
+core_df.to_csv('../../analytic_fits/zap_2009/debug/core.csv', index=False)
+# pd.concat(uz_df_list_core).to_csv('../../analytic_fits/zap_2009/debug/core.csv', index=False)
+balance_df = pd.concat([df.reset_index(drop=True) for df in uz_df_list_balance], axis=1)
+balance_df.to_csv('../../analytic_fits/zap_2009/debug/balance.csv', index=False)
+# pd.concat(uz_df_list_balance).to_csv('../../analytic_fits/zap_2009/debug/balance.csv', index=False)
 
 """
 Make fits of Bennett vortices to each half-chord
@@ -208,7 +215,8 @@ for i in range(len(uz_df_list)):
     # print(f'cbt for uz0 = {uz0_mag} m/s: {cbt_temp} m')
     # cbt.append(cbt_temp)
 
-def solve_fit_pureflow(uz_df_list, n0, Tp, uzpos_fits, uzneg_fits, uzpos_roots, uzneg_roots, cbts_pos, cbts_neg, u0, uedge_pos, uedge_neg, rp_pos, rp_neg, r_uzpos, r_uzneg):
+def solve_fit_pureflow(uz_df_list, n0, Tp, uzpos_fits, uzneg_fits, uzpos_roots, uzneg_roots, cbts_pos, cbts_neg, 
+                       u0, uedge_pos, uedge_neg, rp_pos, rp_neg, r_uzpos, r_uzneg):
     for i in range(len(uz_df_list)):
         uz0_temp_pos = cpfm.root_solve_chi2_posbulk(uedge_pos[i], u0[i], n0, rp_pos[i], Tp)
         uz0_temp_neg = cpfm.root_solve_chi2_posbulk(uedge_neg[i], u0[i], n0, rp_neg[i], Tp)
@@ -241,8 +249,9 @@ uzpos_fits_core = []
 uzneg_fits_core = []
 
 # Fits will be in uzpos_fits_core and uzneg_fits_core as a byproduct
-solve_fit_pureflow(uz_df_list_core, n0, Tp, uzpos_fits_core, uzneg_fits_core, uzpos_roots_core, uzneg_roots_core, cbts_pos_core, cbts_neg_core, u0_core, 
-                   uedge_pos, uedge_neg, rp_core_pos, rp_core_neg, r_uzpos_core, r_uzneg_core)
+solve_fit_pureflow(uz_df_list_core, n0, Tp, uzpos_fits_core, uzneg_fits_core, uzpos_roots_core, uzneg_roots_core, 
+                   cbts_pos_core, cbts_neg_core, u0_core, uedge_pos, uedge_neg, 
+                   rp_core_pos, rp_core_neg, r_uzpos_core, r_uzneg_core)
 
 cbts_pos_balance = []
 cbts_neg_balance = []
@@ -251,8 +260,9 @@ uzneg_roots_balance = []
 uzpos_fits_balance = []
 uzneg_fits_balance = []
 
-solve_fit_pureflow(uz_df_list_balance, n0, Tp, uzpos_fits_balance, uzneg_fits_balance, uzpos_roots_balance, uzneg_roots_balance, cbts_pos_balance, cbts_neg_balance, 
-                   u0_balance, uedge_pos, uedge_neg, rp_balance_pos, rp_balance_neg, r_uzpos_balance, r_uzneg_balance)
+solve_fit_pureflow(uz_df_list_balance, n0, Tp, uzpos_fits_balance, uzneg_fits_balance, uzpos_roots_balance, 
+                   uzneg_roots_balance, cbts_pos_balance, cbts_neg_balance, u0_balance, uedge_pos, uedge_neg, 
+                   rp_balance_pos, rp_balance_neg, r_uzpos_balance, r_uzneg_balance)
 """
 Plot
 """
@@ -273,16 +283,16 @@ for i, uz_df in enumerate(uz_df_list):
     # uzpos_fit = cpfm.uz_chi2cubic_posbulk(cbt_temp, uz0_mag, u0, rpos_list[i])
     # uzneg_fit = cpfm.uz_chi2cubic_negbulk(cbt_temp, uz0_mag, u0, -rneg_list[i]) # Make rneg positive for calculating
 
-def plot_fit(uz_df, r_uzpos, uzpos_fits, r_uzneg, uzneg_fits, title):
+def plot_fit(uz_df_list, r_uzpos, uzpos_fits, r_uzneg, uzneg_fits, title):
     for i, uz_df in enumerate(uz_df_list):     
         plt.figure()
         plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'], label='Experimental data', color='blue')
         plt.title(title)
         for j in range(len(uzpos_fits[i])):
-            plt.plot(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Root {j+1}p: uz0 = {uzpos_roots[i][j]:.3e} m/s, cbt = {cbts_pos[i][j]:.3e} m ')plt.plot(r_uzpos[i] * 1e3, uzpos_fit / 1e3, label=f'Positive half-chord fit')
+            plt.plot(r_uzpos[i] * 1e3, uzpos_fits[i][j] / 1e3, label=f'Root {j+1}p: uz0 = {uzpos_roots[i][j]:.3e} m/s, cbt = {cbts_pos[i][j]:.3e} m ')
         
         for j in range(len(uzneg_fits[i])):
-                plt.plot(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Root {j+1}n: uz0 = {uzneg_roots[i][j]:.3e} m/s, cbt = {cbts_neg[i][j]:.3e} m ')plt.plot(-r_uzneg[i] * 1e3, uzneg_fit / 1e3, label=f'Negative half-chord fit')
+                plt.plot(-r_uzneg[i] * 1e3, uzneg_fits[i][j] / 1e3, label=f'Root {j+1}n: uz0 = {uzneg_roots[i][j]:.3e} m/s, cbt = {cbts_neg[i][j]:.3e} m ')
 
         plt.ylabel('Axial Velocity (km/s)')
         plt.xlabel('Radius (mm)')
