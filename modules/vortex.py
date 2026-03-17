@@ -30,59 +30,62 @@ class Vortex:
 
     # Fit 
     def fit_chi2_pureflow(self):
-        cbt_temp = []
+        cbts_temp = []
         uz_temp = []
         uz0_temp = cpfm.root_solve_chi2_pure(self.uedge, self.u0, self.n0, self.rp, self.Tp)
         if uz0_temp is not None:
             self.uz0_roots.append(uz0_temp)
             for uz0 in uz0_temp:
-                cbt_temp.append(cpfm.cbt(self.n0, np.abs(uz0), self.rp, self.Tp))
-                uz_temp.append(cpfm.uz_chi2cubic(cbt_temp, uz0, self.u0, self.r))
+                cbt_temp = cpfm.cbt(self.n0, np.abs(uz0), self.rp, self.Tp)
+                cbts_temp.append(cbt_temp)
+                uz_temp.append(cpfm.uz_chi2cubic(cbt_temp, np.abs(uz0), self.u0, self.r))
                 self.uz_fits.append(uz_temp)
             self.cbts.append(cbt_temp)
             self.uz_fits.append(uz_temp)
         pass
     
     def fit_chi2_posbulk(self): 
-        cbt_temp = []
+        cbts_temp = []
         uz_temp = []
         uz0_temp = cpfm.root_solve_chi2_posbulk(self.uedge, self.u0, self.n0, self.rp, self.Tp)
         if uz0_temp is not None:
             self.uz0_roots.append(uz0_temp)
             for uz0 in uz0_temp:
-                cbt_temp.append(cpfm.cbt(self.n0, np.abs(uz0), self.rp, self.Tp))
-                uz_temp.append(cpfm.uz_chi2cubic_posbulk(cbt_temp, uz0, self.u0, self.r))
+                cbt_temp = cpfm.cbt(self.n0, np.abs(uz0), self.rp, self.Tp)
+                cbts_temp.append(cbt_temp)
+                uz_temp.append(cpfm.uz_chi2cubic_posbulk(cbt_temp, np.abs(uz0), self.u0, self.r))
                 self.uz_fits.append(uz_temp)
             self.cbts.append(cbt_temp)
             self.uz_fits.append(uz_temp)
         pass
 
     def fit_chi2_negbulk(self):
-        cbt_temp = []
+        cbts_temp = []
         uz_temp = []
         uz0_temp = cpfm.root_solve_chi2_negbulk(self.uedge, self.u0, self.n0, self.rp, self.Tp)
         if uz0_temp is not None:
             self.uz0_roots.append(uz0_temp)
             for uz0 in uz0_temp:
-                cbt_temp.append(cpfm.cbt(self.n0, np.abs(uz0), self.rp, self.Tp))
-                uz_temp.append(cpfm.uz_chi2cubic_negbulk(cbt_temp, uz0, self.u0, self.r))
+                cbt_temp = cpfm.cbt(self.n0, np.abs(uz0), self.rp, self.Tp)
+                cbts_temp.append(cbt_temp)
+                uz_temp.append(cpfm.uz_chi2cubic_negbulk(cbt_temp, np.abs(uz0), self.u0, self.r))
                 self.uz_fits.append(uz_temp)
-            self.cbts.append(cbt_temp)
+            self.cbts.append(cbts_temp)
             self.uz_fits.append(uz_temp)
         pass
 
-    # Plot
-    def plot(self):
-        for i, uz_df in enumerate(self.uz_df):
-            plt.figure()
-            # plt.plot(uz_df['Radius (mm)'], uz_df['uz (10^{4} m / s)'], 'ro', label='Experimental data') # 
-            plt.title()
-            for j in range(len(self.uz_fits[i])):
-                plt.plot(self.r, self.uz_fits[i][j], label=f'Root {j+1}')
+    # # Plot - This concern should be separated. 
+    # def plot(self):
+    #     for i in range(len(self.uz_fits)):
+    #         plt.figure()
+    #         # plt.plot(uz_df['Radius (mm)'], uz_df['uz (10^{4} m / s)'], 'ro', label='Experimental data') # 
+    #         # plt.title()
+    #         for j in range(len(self.uz_fits[i])):
+    #             plt.plot(self.r, self.uz_fits[i][j], label=f'Root {j+1}')
             
-            # plt.xlabel('Radius (mm)')
-            plt.legend()
-        pass
+    #         # plt.xlabel('Radius (mm)')
+    #         plt.legend()
+    #     pass
 
     # Save results
     def save(self, filepath):
