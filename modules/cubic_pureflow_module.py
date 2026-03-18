@@ -16,7 +16,9 @@ def cbt(n0: float, uz0: float, rp: float, Tp: float) -> float:
     coeff2 = (n0 * uz0**2 * rp**3) / Tp
     return coeff1 * coeff2
 
-# Velocity forms
+""" 
+Velocity forms
+"""
 # u_{z}^{(2)}(r) = u_{z0} * r**2 / (r + cbt)**2
 def uz_chi2cubic_pure(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
     '''
@@ -65,6 +67,38 @@ def uz_chi2cubic_norm(phi: np.ndarray) -> np.ndarray:
     term1 = phi**2 / (phi + 1)**2
     return term1
 
+# Laplacian of the velocity profile for cubic pureflow vortex
+def LapU_chi2cubic_pure(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
+    '''
+    Laplacian of the velocity profile for cubic pureflow vortex
+    Units: [s^-1]
+    '''
+    numerator = 2 * cbt * (2 * cbt - r) * uz0
+    denominator = (r + cbt)**4
+    return numerator / denominator
+
+"""
+Normalized Velocity forms
+"""
+def uz_chi2cubic_norm(phi: np.ndarray) -> np.ndarray:
+    '''
+    Normalized velocity profile uz(phi) for cubic pureflow vortex, where phi = r / cbt
+    Units
+    o phi - Normalized radial positions (dimensionless)
+    '''
+    term1 = phi**2 / (phi + 1)**2
+    return term1
+
+def uz_chi2cubic_norm_shift(phi: np.ndarray, phi_p: float) -> np.ndarray:
+    '''
+    Normalized velocity profile uz(phi) for cubic pureflow vortex, where phi = r / cbt
+    Units
+    o phi - Normalized radial positions (dimensionless)
+    o phi_p - Normalized pinch radius (dimensionless)
+    '''
+    term1 = (phi - phi_p)**2 / (phi - phi_p + 1)**2
+    return term1
+
 # u_{z}^{(2),-}(phi) = (u_{0} - u_{z0} * phi**2 / (phi + 1)**2)
 def uz_chi2cubic_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray:
     '''
@@ -88,17 +122,9 @@ def uz_chi2cubic_negbulk_norm_SHIFT(phi: np.ndarray, uz0_over_u0: float, phi_p: 
     term1 = uz0_over_u0 * (phi - phi_p)**2 / (phi - phi_p + 1)**2
     return 1.0 - term1
 
-# Laplacian of the velocity profile for cubic pureflow vortex
-def LapU_chi2cubic_pure(cbt: float, uz0: float, r: np.ndarray) -> np.ndarray:
-    '''
-    Laplacian of the velocity profile for cubic pureflow vortex
-    Units: [s^-1]
-    '''
-    numerator = 2 * cbt * (2 * cbt - r) * uz0
-    denominator = (r + cbt)**4
-    return numerator / denominator
-
-# Density forms
+""" 
+Density forms
+"""
 # -e * n(r) = J_{z}^{(2,-)}(r) / u_{z}^{(2)}(r)
 def n_chi2cubicflow_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray:
     '''
@@ -109,7 +135,9 @@ def n_chi2cubicflow_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndar
     term1 = (1.0 / uz0_over_u0) * (phi + 1)**2 / phi**2
     return term1 - 1.0
 
-# Magnetic field forms
+""" 
+Magnetic field forms
+"""
 def f(cbt: float, r: np.ndarray) -> np.ndarray:
     '''
     Logarithmic constituent function for magnetic field profile in cubic pureflow vortex
@@ -121,7 +149,6 @@ def f(cbt: float, r: np.ndarray) -> np.ndarray:
     term4 = 6 * cbt**3
     return term1 - term2 - term3 * (1 + np.log(cbt / (r + cbt))) - term4 * np.log(cbt / (r + cbt)) 
 
-# GPT-5.3-Codex suggests to make this a method for a vortex class
 def btheta_chi2(cbt: float, uz0: float, n0: float, r: np.ndarray) -> np.ndarray:
     '''
     Magnetic field profile btheta(r) for cubic pureflow vortex
@@ -223,7 +250,7 @@ def root_solve_chi2_pure(uedge: float, n0: float, rp: float, Tp: float) -> np.nd
     print(f"Roots of the chi=2 flow boundary condition polynomial: {uz0_roots}")
         # uz0_real = uz0_roots[np.isreal(uz0_roots)].real
         # print(f"Real roots of the chi=2 flow boundary condition polynomial: {uz0_real}")
-
+    
     return uz0_roots
 
 def root_solve_chi2_negbulk(uedge: float, u0: float, n0: float, rp: float, Tp: float) -> np.ndarray:
