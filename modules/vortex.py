@@ -40,7 +40,7 @@ class Vortex:
                 cbts_temp.append(cbt_temp)
                 uz_temp.append(cpfm.uz_chi2cubic(cbt_temp, np.abs(uz0), self.u0, self.r))
                 self.uz_fits.append(uz_temp)
-            self.cbts.append(cbt_temp)
+            self.cbts.append(cbts_temp)
             self.uz_fits.append(uz_temp)
         pass
     
@@ -55,7 +55,7 @@ class Vortex:
                 cbts_temp.append(cbt_temp)
                 uz_temp.append(cpfm.uz_chi2cubic_posbulk(cbt_temp, np.abs(uz0), self.u0, self.r))
                 self.uz_fits.append(uz_temp)
-            self.cbts.append(cbt_temp)
+            self.cbts.append(cbts_temp)
             self.uz_fits.append(uz_temp)
         pass
 

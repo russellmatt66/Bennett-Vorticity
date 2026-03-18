@@ -10,13 +10,21 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from sklearn.metrics import mean_squared_error
+
 CIII_df = pd.read_csv('../../experimental_data/zap_2009/zap2009_CIIIIntensity_fig13.csv')
 electron_df = pd.read_csv('../../experimental_data/zap_2009/zap2009_electronIntensity_fig12.csv')
 print(electron_df.head())
 
-n0 = 1e22 # Plasma density [m^-3]; 1e22 - 1e23
+n0 = 1e30 # Plasma density [m^-3]; 1e22 - 1e23
+
+FUDGE_FACTOR = 1 # TO GET THE EXPERIMENTAL TEMPERATURE
+# FUDGE_FACTOR = 1e-8 # TO MAKE CBT LARGER
 Tpe = 64 * cnst.eV_to_K # Electron temperature [K]; T = Te + Ti = 150 - 200 eV
 Tpi = 71 * cnst.eV_to_K # Ion temperature [K]; T = Te + Ti = 150 - 200 eV
+
+Tpe *= FUDGE_FACTOR
+Tpi *= FUDGE_FACTOR
 
 # Electron scattering intensity profile is posbulk to posbulk
 min_idx = electron_df.iloc[:, 1].idxmin() # Find the index of the minimum intensity
@@ -71,29 +79,94 @@ e_vortex_neg.fit_chi2_posbulk()
 i_vortex_pos.fit_chi2_negbulk()
 i_vortex_neg.fit_chi2_negbulk()
 
-# Plot
+# Calculate error
+def calculate_fit_error(r_exp, y_exp, r_fit, y_fit):
+    """
+    Calculates Relative RMSE (RRMSE) between experimental data and a fit curve.
+    Formula: RMSE / (y_max - y_min)
+    
+    r_exp: Experimental radii
+    y_exp: Experimental intensity values
+    r_fit: Fit radii
+    y_fit: Fit intensity values
+    """
+    # Interpolate the fit function onto the experimental r coordinates
+    y_fit_interpolated = np.interp(r_exp, r_fit, y_fit)
+    
+    # Calculate RMSE
+    rmse = np.sqrt(mean_squared_error(y_exp, y_fit_interpolated))
+    
+    # Calculate Relative RMSE (normalize by range of data)
+    data_range = np.max(y_exp) - np.min(y_exp)
+    if data_range == 0:
+        return np.inf  # Avoid division by zero
+        
+    rrmse = rmse / data_range
+    return rrmse
+
 speed_to_intensity_e = alpha_e * cnst.q_e * n0
 speed_to_intensity_i = alpha_ion * cnst.q_e * n0
 
+pos_data = electron_df[electron_df.iloc[:, 0] >= 0]
+r_exp = pos_data.iloc[:, 0].to_numpy()
+y_exp = pos_data.iloc[:, 1].to_numpy()
+r_fit = e_vortex_pos.r * 1e9 # Convert back to nm for comparison
+
+neg_data = electron_df[electron_df.iloc[:, 0] <= 0]
+r_exp_neg = np.abs(neg_data.iloc[:, 0].to_numpy()) # Make positive for comparison
+y_exp_neg = neg_data.iloc[:, 1].to_numpy()
+# print(f'Experimental Intensity (neg half): {y_exp_neg}')
+r_fit_neg = e_vortex_neg.r * 1e9
+
+pos_data_ion = CIII_df[CIII_df.iloc[:, 0] >= 0]
+r_exp_ion_pos = pos_data_ion.iloc[:, 0].to_numpy()
+y_exp_ion_pos = pos_data_ion.iloc[:, 1].to_numpy()
+r_fit_ion_pos = i_vortex_pos.r * 1e9
+
+neg_data_ion = CIII_df[CIII_df.iloc[:, 0] <= 0]
+r_exp_ion_neg = np.abs(neg_data_ion.iloc[:, 0].to_numpy())
+y_exp_ion_neg = neg_data_ion.iloc[:, 1].to_numpy()
+r_fit_ion_neg = i_vortex_neg.r * 1e9
+# y_fit = speed_to_intensity_e * e_vortex_pos.uz_fits[0][0] # Use the first fit for error calculation
+
+# rrmse_e_pos = calculate_fit_error(r_exp, y_exp, r_fit, y_fit)
+# print(f'Relative RMSE for electron posbulk fit: {rrmse_e_pos:.3f}')
+
+
+# Plot
 plt.figure()
 plt.plot(electron_df.iloc[:, 0], electron_df.iloc[:, 1], 'kx', label='Zap 2009 Electron Thomson Scattering')
+plt.xlabel('Radius (nm)')
+plt.ylabel('Intensity (A.U.)')
+plt.title(f'Cubic Bennett Vortex Fits to Zap 2009 Thomson Scattering, n0 = {n0:.1e} m$^{{-3}}$, $T_e$ = {Tpe * cnst.K_to_eV:.0f} eV')
 for j in range(len(e_vortex_pos.uz_fits[0])):
-    plt.plot(e_vortex_pos.r * 1e9, speed_to_intensity_e * e_vortex_pos.uz_fits[0][j], label=f'Electron Vortex Fit {j+1} (posbulk)')
+    y_fit = speed_to_intensity_e * e_vortex_pos.uz_fits[0][j]
+    rrmse = calculate_fit_error(r_exp, y_exp, r_fit, y_fit)
+    plt.plot(e_vortex_pos.r * 1e9, speed_to_intensity_e * e_vortex_pos.uz_fits[0][j], label=f'uz0 = {e_vortex_pos.uz0_roots[0][j]:.3e} m/s, cbt = {e_vortex_pos.cbts[0][j]:.3e} m, RRMSE = {rrmse:.3f}')
 
 for j in range(len(e_vortex_neg.uz_fits[0])):
-    plt.plot(-e_vortex_neg.r * 1e9, speed_to_intensity_e * e_vortex_neg.uz_fits[0][j], label=f'Electron Vortex Fit {j+1} (posbulk)')
+    y_fit = speed_to_intensity_e * e_vortex_neg.uz_fits[0][j]
+    rrmse = calculate_fit_error(r_exp_neg, y_exp_neg, r_fit_neg, y_fit)
+    plt.plot(-e_vortex_neg.r * 1e9, speed_to_intensity_e * e_vortex_neg.uz_fits[0][j], label=f'uz0 = {e_vortex_neg.uz0_roots[0][j]:.3e} m/s, cbt = {e_vortex_neg.cbts[0][j]:.3e} m, RRMSE = {rrmse:.3f}')
 
 plt.legend()
 
 plt.figure()
 plt.plot(CIII_df.iloc[:, 0], CIII_df.iloc[:, 1], 'kx', label='Zap 2009 CIII Impurity Line (Doppler Broadened)')
+plt.xlabel('Radius (nm)')
+plt.ylabel('Intensity (A.U.)')
+plt.title(f'Cubic Bennett Vortex Fits to Zap 2009 CIII line, n0 = {n0:.1e} m$^{{-3}}$, $T_i$ = {Tpi * cnst.K_to_eV:.0f} eV')
 for j in range(len(i_vortex_pos.uz_fits[0])):
-    plt.plot(i_vortex_pos.r * 1e9, speed_to_intensity_i * i_vortex_pos.uz_fits[0][j], label=f'Ion Vortex Fit {j+1} (negbulk)')
+    y_fit = speed_to_intensity_i * i_vortex_pos.uz_fits[0][j]
+    rrmse = calculate_fit_error(r_exp_ion_pos, y_exp_ion_pos, r_fit_ion_pos, y_fit)
+    plt.plot(i_vortex_pos.r * 1e9, speed_to_intensity_i * i_vortex_pos.uz_fits[0][j], label=f'uz0 = {i_vortex_pos.uz0_roots[0][j]:.3e} m/s, cbt = {i_vortex_pos.cbts[0][j]:.3e} m, RRMSE = {rrmse:.3f}')
 
 for j in range(len(i_vortex_neg.uz_fits[0])):
-    plt.plot(-i_vortex_neg.r * 1e9, speed_to_intensity_i * i_vortex_neg.uz_fits[0][j], label=f'Ion Vortex Fit {j+1} (negbulk)')
+    y_fit = speed_to_intensity_i * i_vortex_neg.uz_fits[0][j]
+    rrmse = calculate_fit_error(r_exp_ion_neg, y_exp_ion_neg, r_fit_ion_neg, y_fit)
+    plt.plot(-i_vortex_neg.r * 1e9, speed_to_intensity_i * i_vortex_neg.uz_fits[0][j], label=f'uz0 = {i_vortex_neg.uz0_roots[0][j]:.3e} m/s, cbt = {i_vortex_neg.cbts[0][j]:.3e} m, RRMSE = {rrmse:.3f}')
 
-plt.legend()
+plt.legend(loc='upper left')
 # e_vortex_pos.plot()
 # e_vortex_neg.plot()
 
