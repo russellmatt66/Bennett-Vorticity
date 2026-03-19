@@ -15,12 +15,12 @@ from scipy.integrate import cumulative_trapezoid
 import numpy as np
 import matplotlib.pyplot as plt
 
-n0 = 1e22 # Plasma density [m^-3]; 1e22 - 1e23
-rp = 5e-3 # Pinch radius [m]
-Tp = 5e2 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
+n0 = 1e26 # Plasma density [m^-3]; 1e22 - 1e23
+rp = 10e-6 # Pinch radius [m]
+Tp = 1e2 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
 
 u0 = 10e3 # Representative core flow velocity [m/s]
-u02 = 100e3 # Representative core flow velocity for second vortex - edge state for first [m/s]
+u02 = 50e3 # Representative core flow velocity for second vortex - edge state for first [m/s]
 
 num_r = 400
 r = np.linspace(0, 2.0 * rp, num_r) # Radial positions for plotting [m]
@@ -36,6 +36,7 @@ uedge_list = [u02, u0] # BCs: [even, odd]
 num_roots = 4 # cubic, pureflow vortices have this many always 
 root_tracks = [[] for _ in range(num_roots)]
 cbt_tracks = [[] for _ in range(num_roots)]
+uz0_tracks = [[] for _ in range(num_roots)]
 
 # Solve the equations
 for i, r_chunk in enumerate(r_chunks):
@@ -47,6 +48,7 @@ for i, r_chunk in enumerate(r_chunks):
             uz_chunk = cpfm.uz_chi2cubic_posbulk(cbt, np.abs(uz0), u0_list[0], r_chunk)
             root_tracks[ridx].append(uz_chunk)
             cbt_tracks[ridx].append(cbt)
+            uz0_tracks[ridx].append(uz0)
 
     else: # Odd index: negative bulk vortex
         uz0_roots = cpfm.root_solve_chi2_negbulk(u0_list[1], uedge_list[1], n0, rp, Tp)
@@ -55,6 +57,8 @@ for i, r_chunk in enumerate(r_chunks):
             uz_chunk = cpfm.uz_chi2cubic_negbulk(cbt, np.abs(uz0), u0_list[1], r_chunks[0]) 
             root_tracks[ridx].append(uz_chunk)
             cbt_tracks[ridx].append(cbt)
+            uz0_tracks[ridx].append(uz0)
+
 
 # uz = np.concatenate(uz_list)
 uzs = []
@@ -74,7 +78,7 @@ def solve_bfield(uz: np.ndarray, r: np.ndarray) -> np.ndarray:
 # Plot
 plt.figure()
 for i, uz in enumerate(uzs):
-    plt.plot(r, uz, label=f'Root {i+1}, cbt = {cbt_tracks[i][0]:.3e} m')
+    plt.plot(r, uz, label=f'Root {i+1}, cbt = {cbt_tracks[i][0]:.3e} m, uz0 = {uz0_tracks[i][0]:.3e} m/s')
     plt.xlabel("Radial position [m]")
     plt.ylabel("Axial velocity [m/s]")
     plt.ylim(0.0, 1.1 * uz.max())
@@ -97,7 +101,7 @@ for i, uz in enumerate(uzs):
     uzs_ext.append(uz_ext)
     r_exts.append(r_ext)
     B = solve_bfield(uz_ext, r_ext)
-    plt.plot(r_ext, B, label=f'Root {i+1}, cbt = {cbt_tracks[i][0]:.3e} m')
+    plt.plot(r_ext, B, label=f'Root {i+1}, cbt = {cbt_tracks[i][0]:.3e} m, uz0 = {uz0_tracks[i][0]:.3e} m/s')
     plt.xlabel("Radial position [m]")
     plt.ylabel("Magnetic field [T]")
     plt.title(f"Vortex sawtooth magnetic field, n0 = {n0:.1e} m^-3, Tp = {Tp / cnst.eV_to_K:.1f} eV, u0 = {u0:.1e} m/s")
@@ -105,7 +109,7 @@ plt.legend()
 
 plt.figure()
 for i, uz_ext in enumerate(uzs_ext):
-    plt.plot(r_exts[i], uz_ext, label=f'Root {i+1}, cbt = {cbt_tracks[i][0]:.3e} m')
+    plt.plot(r_exts[i], uz_ext, label=f'Root {i+1}, cbt = {cbt_tracks[i][0]:.3e} m, uz0 = {uz0_tracks[i][0]:.3e} m/s')
     plt.xlabel("Radial position [m]")
     plt.ylabel("Axial velocity [m/s]")
     plt.title(f"Extended vortex sawtooth, n0 = {n0:.1e} m^-3, Tp = {Tp / cnst.eV_to_K:.1f} eV, u0 = {u0:.1e} m/s")
