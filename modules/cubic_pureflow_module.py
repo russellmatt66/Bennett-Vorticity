@@ -126,13 +126,23 @@ def uz_chi2cubic_negbulk_norm_SHIFT(phi: np.ndarray, uz0_over_u0: float, phi_p: 
 Density forms
 """
 # -e * n(r) = J_{z}^{(2,-)}(r) / u_{z}^{(2)}(r)
-def n_chi2cubicflow_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray:
+def n_chi2cubic_negbulk_norm(phi: np.ndarray, uz0_over_u0: float) -> np.ndarray:
     '''
     Normalized density profile n(phi) for cubic pureflow vortex with a negative bulk flow current
     o phi - Normalized radial positions (dimensionless)
     o uz0_over_u0 - Ratio of edge flow velocity to core flow velocity (dimensionless)
     '''
     term1 = (1.0 / uz0_over_u0) * (phi + 1)**2 / phi**2
+    return term1 - 1.0
+
+def n_chi2cubic_negbulk_norm_SHIFT(phi: np.ndarray, uz0_over_u0: float, phi_p: float) -> np.ndarray:
+    '''
+    Normalized density profile n(phi) for cubic pureflow vortex with a negative bulk flow current
+    o phi - Normalized radial positions (dimensionless)
+    o uz0_over_u0 - Ratio of edge flow velocity to core flow velocity (dimensionless)
+    o phi_p - Normalized pinch radius (dimensionless)
+    '''
+    term1 = (1.0 / uz0_over_u0) * (phi - phi_p + 1)**2 / (phi - phi_p)**2
     return term1 - 1.0
 
 """ 
