@@ -13,28 +13,59 @@ from modules import constants as cnst
 import numpy as np
 import matplotlib.pyplot as plt
 
-num_phi = 200
-phi = np.linspace(0, 2, num_phi)
+n0 = 1e22 # Plasma density [m^-3]; 1e22 - 1e23
+rp = 10e-3 # Pinch radius [m]
+Tp = 200 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
 
-phi_p = 1.0 # phi_p = rp / cbt constrains the problem but not really the plasma state  
-beta_L = phi_p ** -1
+u0 = 50e3 # Representative core flow velocity [m/s]
 
-# uz0_over_u0 = 0.5 * (beta_L + 1)**2 # Boundary condition for transition from pure to negative bulk flow
-uz0_over_u0 = 1.0 
+num_r = 400
+r = np.linspace(0, 2.0 * rp, num_r) # Radial positions for plotting [m]
 
-# Calculate vortex chain
-# uz_list = []
-num_vortices = 2
-uz = np.zeros(num_phi)
+n_vortices = 2
+chunk_size = r.size // n_vortices
 
-uz[:num_phi//2] += cpfm.uz_chi2cubic_norm(phi[:len(phi)//2])
-uz[num_phi//2:] += cpfm.uz_chi2cubic_negbulk_norm_SHIFT(phi[len(phi)//2:], uz0_over_u0, phi_p)
+r_chunks = [r[i:i + chunk_size] for i in range(0, r.size, chunk_size)]
 
-# uz = np.zeros(int(0.5 * num_phi))
+u0_list = [u0, 2 * u0] # BCS: [even, odd]
+uedge_list = [2 * u0, u0] # BCs: [even, odd]
 
-# uz = cpfm.uz_chi2cubic_norm(phi)[:len(uz)]
+num_roots = 4 # cubic, pureflow vortices have this many always 
+root_tracks = [[] for _ in range(num_roots)]
+cbt_tracks = [[] for _ in range(num_roots)]
 
+# Solve the equations
+for i, r_chunk in enumerate(r_chunks):
+    print(f'Processing chunk {i} of {n_vortices}...')
+    if i % 2 == 0: # Even index: pureflow positive bulk vortex
+        uz0_roots = cpfm.root_solve_chi2_posbulk(uedge_list[0], u0_list[0], n0, rp, Tp)
+        for ridx, uz0 in enumerate(uz0_roots):
+            cbt = cpfm.cbt(n0, np.abs(uz0), rp, Tp)
+            uz_chunk = cpfm.uz_chi2cubic_posbulk(cbt, np.abs(uz0), u0_list[0], r_chunk)
+            root_tracks[ridx].append(uz_chunk)
+            cbt_tracks[ridx].append(cbt)
 
-# Plot
-plt.plot(phi, uz)
+    else: # Odd index: negative bulk vortex
+        uz0_roots = cpfm.root_solve_chi2_negbulk(u0_list[1], uedge_list[1], n0, rp, Tp)
+        for ridx, uz0 in enumerate(uz0_roots):
+            cbt = cpfm.cbt(n0, np.abs(uz0), rp, Tp)
+            uz_chunk = cpfm.uz_chi2cubic_negbulk(cbt, np.abs(uz0), u0_list[1], r_chunk) # ***THIS NEEDS TO BE SHIFTED***
+            root_tracks[ridx].append(uz_chunk)
+            cbt_tracks[ridx].append(cbt)
+
+# uz = np.concatenate(uz_list)
+uzs = []
+
+for track in root_tracks:
+    uzs.append(np.concatenate(track))
+
+for uz in uzs:
+    plt.plot(r, uz)
+    plt.xlabel("Radial position [m]")
+    plt.ylabel("Axial velocity [m/s]")
+    plt.title("Axial velocity profile")
+# plt.plot(r, uz)
+# plt.xlabel("Radial position [m]")
+# plt.ylabel("Axial velocity [m/s]")
+# plt.title("Axial velocity profile")
 plt.show()
