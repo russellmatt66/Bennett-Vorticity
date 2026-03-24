@@ -247,9 +247,29 @@ def calculate_rrmse(uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_arra
 swtc_fits = [swtc_uz_neg0pt10, swtc_uz_0pt10, swtc_uz_0pt16, swtc_uz_0pt34, swtc_uz_0pt56]
 r_arrays = [r_neg0pt10, r_0pt10, r_0pt16, r_0pt34, r_0pt56]
 
+rrmse_avgs = []
 for i, uz_df in enumerate(uz_df_list):
     rrmses = calculate_rrmse(uz_df, swtc_fits[i], r_arrays[i])
-    print(f'RRMSE for {uz_df["name"].iloc[0]}: {rrmses}')
+    for j in range(len(rrmses)):
+        print(f'j = {j}, rrmses dimensions: {len(rrmses)}, {len(rrmses[j])}')
+    # print(f'rrmses dimensions: {len(rrmses)}, {len(rrmses[0])}')
+    max_roots = max((len(seg) for seg in rrmses), default=0)
+    if max_roots == 0: # No roots found for any segment, skip RRMSE calculation
+        print(f'No roots found for {uz_df["name"].iloc[0]}, skipping RRMSE calculation.')
+        rrmse_avgs.append([]) # Append empty list to maintain alignment with other cases
+        continue
+    # `fit_vortex_chain` neglects the case when u0 = uedge, which will then give 0 roots
+    rrmse_sum = np.zeros(max_roots)
+    rrmse_counts = np.zeros(max_roots)
+    for k in range(len(rrmses)):
+        for j in range(len(rrmses[k])):
+            rrmse_sum[j] += rrmses[k][j]
+            rrmse_counts[j] += 1
+    rrmse_avg = rrmse_sum / rrmse_counts
+    rrmse_avgs.append(rrmse_avg)
+    # print(f'RRMSE for {uz_df["name"].iloc[0]}: {rrmses}')
+
+print(f'Average RRMSE across all segments for each root: {rrmse_avgs}')
 
 # PLOT
 # plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
