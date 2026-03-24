@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error  
 # from zap2009_pureflow import t # Don't do this, totally destroys execution
 
 uz_data = pd.read_csv('../../experimental_data/zap_2009/zap2009_uz_fig9.csv', header=0, skiprows=[1])
@@ -223,6 +223,33 @@ save_vortex_chain(swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10, '../..
 save_vortex_chain(swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt16.csv')
 save_vortex_chain(swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt34.csv')
 save_vortex_chain(swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56, '../../analytic_fits/zap_2009/vortex_chain_fits/uz_tau_0pt56.csv')
+
+# GET RRMSE
+def calculate_rrmse(uz_df: pd.DataFrame, uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray]) -> list[list[float]]:
+    """
+    Calculate the RRMSE of the given vortex chain fits against the given uz data.
+    """
+    uz_df_vel = uz_df['uz (km/s)'].to_numpy() * 1e3 # Convert to m/s
+    uz_df_r = uz_df['r (mm)'].to_numpy() * 1e-3 # Convert to m 
+    rrmse_list = []
+    for i in range(len(uz_fits)):
+        rrmses_root = []
+        for j in range(len(uz_fits[i])): # Compare analytic root to linear sawtooth cell 
+            # uz_fit_interp = uz_df_vel[i] + (uz_df_vel[i+1] - uz_df_vel[i]) * (r_arrays[i] - uz_df_r[i]) /  (uz_df_r[i+1] - uz_df_r[i]) 
+            m = (uz_df_vel[i+1] - uz_df_vel[i]) / (uz_df_r[i+1] - uz_df_r[i])
+            b = uz_df_vel[i] - m * uz_df_r[i]
+            uz_fit_interp = m * r_arrays[i] + b
+            rrmse = np.sqrt(mean_squared_error(uz_fit_interp, uz_fits[i][j])) / np.mean(np.abs(uz_fit_interp)) 
+            rrmses_root.append(rrmse)
+        rrmse_list.append(rrmses_root)
+    return rrmse_list
+
+swtc_fits = [swtc_uz_neg0pt10, swtc_uz_0pt10, swtc_uz_0pt16, swtc_uz_0pt34, swtc_uz_0pt56]
+r_arrays = [r_neg0pt10, r_0pt10, r_0pt16, r_0pt34, r_0pt56]
+
+for i, uz_df in enumerate(uz_df_list):
+    rrmses = calculate_rrmse(uz_df, swtc_fits[i], r_arrays[i])
+    print(f'RRMSE for {uz_df["name"].iloc[0]}: {rrmses}')
 
 # PLOT
 # plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
