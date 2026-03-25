@@ -250,8 +250,8 @@ r_arrays = [r_neg0pt10, r_0pt10, r_0pt16, r_0pt34, r_0pt56]
 rrmse_avgs = []
 for i, uz_df in enumerate(uz_df_list):
     rrmses = calculate_rrmse(uz_df, swtc_fits[i], r_arrays[i])
-    for j in range(len(rrmses)):
-        print(f'j = {j}, rrmses dimensions: {len(rrmses)}, {len(rrmses[j])}')
+    # for j in range(len(rrmses)):
+        # print(f'j = {j}, rrmses dimensions: {len(rrmses)}, {len(rrmses[j])}')
     # print(f'rrmses dimensions: {len(rrmses)}, {len(rrmses[0])}')
     max_roots = max((len(seg) for seg in rrmses), default=0)
     if max_roots == 0: # No roots found for any segment, skip RRMSE calculation
@@ -272,6 +272,22 @@ for i, uz_df in enumerate(uz_df_list):
 print(f'Average RRMSE across all segments for each root: {rrmse_avgs}')
 
 # PLOT
+plt.figure()
+plt.plot(uz_tau_0pt56['r (mm)'], uz_tau_0pt56['uz (km/s)'], 'b--', label='Experimental data')
+
+colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+for i in range(len(swtc_uz_0pt56)):
+    for j in range(len(swtc_uz_0pt56[i])):
+        color = colors [j % len(colors)]
+        label = f'Root {j+1}' if i == 0 else "_nolegend_" # avoid duplicate legend entries
+        plt.plot(r_0pt56[i] * 1e3, swtc_uz_0pt56[i][j] / 1e3, color = color, label=label)
+
+plt.title(f'Reconstruction of Zap 2009 axial velocity, $\\tau$ = {t(float(uz_tau_0pt56["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
+plt.xlabel('Radius (mm)')
+plt.ylabel('Axial Velocity (km/s)')
+plt.legend()
+
 # plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
 # nfig += len(swtc_uz_neg0pt10[0]) # Cubic, chi=2 vortices will all have four roots
 # plot_vortex_chain(nfig, uz_tau_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
