@@ -51,29 +51,33 @@ print(f'uz0 = {uz0_mag}')
 cbt = []
 uzpos_fits = []
 uzneg_fits = []
-for uz0 in np.unique(uz0_mag):
-    cbt_temp = cpfm.cbt(n0, uz0, rp, Tp) # Vortex constant [m]
-    print(f'cbt for uz0 = {uz0} m/s: {cbt_temp} m')
-    cbt.append(cbt_temp)
+for uz0p, uz0n in zip(uz0_pos, uz0_neg):
+    uz0p = np.abs(uz0p) # Take magnitude
+    uz0n = np.abs(uz0n) # Take magnitude
+    cbt_temp_pos = cpfm.cbt(n0, uz0p, rp, Tp) # Vortex constant [m]
+    cbt_temp_neg = cpfm.cbt(n0, uz0n, rp, Tp) # Vortex constant [m]
+    print(f'cbt for uz0 = {uz0p} m/s: {cbt_temp_pos} m')
+    cbt.append((cbt_temp_pos, cbt_temp_neg))
 
     plt.figure()
-    uzpos_fit = cpfm.uz_chi2cubic_posbulk(cbt_temp, uz0, u0, rpos)
-    uzneg_fit = cpfm.uz_chi2cubic_negbulk(cbt_temp, uz0, u0, -rneg) # Make rneg positive for calculating
+    uzpos_fit = cpfm.uz_chi2cubic_posbulk(cbt_temp_pos, uz0p, u0, rpos)
+    # uzpos_fit = cpfm.uz_chi2cubic_negbulk(cbt_temp, uz0, u0, rpos)
+    uzneg_fit = cpfm.uz_chi2cubic_negbulk(cbt_temp_neg, uz0n, u0, -rneg) # Make rneg positive for calculating
     
     uzpos_fits.append(uzpos_fit)
     uzneg_fits.append(uzneg_fit)
 
-    # plt.plot(rpos, uzpos_fit, 'bo', label='Bulk, $\chi=2$, positive cubic vortex')
-    # plt.plot(rneg, uzneg_fit, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
-    # plt.plot(r_data, uz_data, 'kx', label='Zap 2001 Axial Velocity Data')
+    plt.plot(rpos, uzpos_fit, 'bo', label='Bulk, $\chi=2$, positive cubic vortex')
+    plt.plot(rneg, uzneg_fit, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
+    plt.plot(r_data, uz_data, 'kx', label='Zap 2001 Axial Velocity Data')
 
-    # plt.title(f'Fit of Bennett cubic vortices to Zap 2001 axial velocity data, $r_p = 10$ mm, $n_0 = 10^{{22}}$ m$^{{-3}}$, $T_p = 75$ eV, $u_0 = 10^5$ m/s, $uz0 = {uz0:.3e}$')
-    # plt.xlabel('Radius (m)')
-    # plt.ylabel('Axial Velocity (m/s)')
+    plt.title(f'Fit of Bennett cubic vortices to Zap 2001 axial velocity data, $r_p = 10$ mm, $n_0 = 10^{{22}}$ m$^{{-3}}$, $T_p = 75$ eV, $u_0 = 10^5$ m/s)')
+    plt.xlabel('Radius (m)')
+    plt.ylabel('Axial Velocity (m/s)')
 
-    # plt.ylim(0, 1.5e5)
+    plt.ylim(0, 1.5e5)
 
-    # plt.legend()
+    plt.legend()
 
 RRMSEpos = []
 for uz_fit in uzpos_fits:
@@ -94,7 +98,7 @@ print(RRMSEneg)
 for uz0 in np.unique(uz0_mag):
     cbt_temp = cpfm.cbt(n0, uz0, rp, Tp) # Vortex constant [m]
     p0 = cpfm.p0(cbt_temp, n0, uz0, rp) # Core plasma pressure [Pa]
-    Bmax = np.abs(cpfm.btheta(cbt_temp, uz0, n0, rp)) # Edge magnetic field [T]
+    Bmax = np.abs(cpfm.btheta_chi2_negbulk(cbt_temp, uz0, u0, n0, rp)) # Edge magnetic field [T]
     tauE = cpfm.tauE(p0, uz0, rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
     tauA = rp / pp.vA(Bmax, n0) # Alfvén time [s]
     # peak_shear = cpfm.peakshear_chi2cubic()
