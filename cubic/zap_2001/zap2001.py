@@ -45,12 +45,10 @@ uz0_neg = cpfm.root_solve_chi2_negbulk(uedge, u0, n0, rp, Tp)
 # print(f'uz0_pos = {uz0_pos_real} m/s')
 # print(f'uz0_neg = {uz0_neg_real} m/s')
 
-uz0_mag = np.abs(uz0_pos) # Use the magnitude of the first root for the fit
-print(f'uz0 = {uz0_mag}')
-
 cbt = []
 uzpos_fits = []
 uzneg_fits = []
+root_num = 1
 for uz0p, uz0n in zip(uz0_pos, uz0_neg):
     uz0p = np.abs(uz0p) # Take magnitude
     uz0n = np.abs(uz0n) # Take magnitude
@@ -67,50 +65,63 @@ for uz0p, uz0n in zip(uz0_pos, uz0_neg):
     uzpos_fits.append(uzpos_fit)
     uzneg_fits.append(uzneg_fit)
 
-    plt.plot(rpos, uzpos_fit, 'bo', label='Bulk, $\chi=2$, positive cubic vortex')
-    plt.plot(rneg, uzneg_fit, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
-    plt.plot(r_data, uz_data, 'kx', label='Zap 2001 Axial Velocity Data')
+    plt.plot(rpos * 1e3, uzpos_fit / 1e3, 'bo', label='Bulk, $\chi=2$, positive cubic vortex')
+    plt.plot(rneg * 1e3, uzneg_fit / 1e3, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
+    plt.plot(r_data * 1e3, uz_data / 1e3, 'kx', label='Zap 2001 Axial Velocity Data')
 
-    plt.title(f'Fit of Bennett cubic vortices to Zap 2001 axial velocity data, $r_p = 10$ mm, $n_0 = 10^{{22}}$ m$^{{-3}}$, $T_p = 75$ eV, $u_0 = 10^5$ m/s)')
-    plt.xlabel('Radius (m)')
-    plt.ylabel('Axial Velocity (m/s)')
+    plt.title(f'Analytic reconstruction of Zap 2001 axial velocity data, Root {root_num}, $r_p = 10$ mm, $n_0 = 10^{{22}}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = 10^5$ m/s)')
+    plt.xlabel('Radius (mm)')
+    plt.ylabel('Axial Velocity (km/s)')
 
-    plt.ylim(0, 1.5e5)
+    plt.ylim(0, 150)
 
     plt.legend()
+    root_num += 1
 
 RRMSEpos = []
+RRMSEpos_all = []
 for uz_fit in uzpos_fits:
-    rmse = np.sqrt(mean_squared_error(uzpos, uz_fit))
+    rmse_all = np.sqrt(mean_squared_error(uzpos, uz_fit)) 
+    rmse = np.sqrt(mean_squared_error(uzpos[:-1-1], uz_fit[:-1-1])) # Exclude the last two points
+    rrmse_all = rmse_all / np.mean(uzpos)
     rrmse = rmse / np.mean(uzpos)
+    RRMSEpos_all.append(rrmse_all)
     RRMSEpos.append(rrmse)
 
 RRMSEneg = []
+RRMSEneg_all = []
 for uz_fit in uzneg_fits:
-    rmse = np.sqrt(mean_squared_error(uzneg, uz_fit))
-    rrmse = rmse / np.mean(np.abs(uzneg)) # Use mean of absolute values for normalization
+    # print(f'uzfitneg = {uz_fit}')
+    rmse_all = np.sqrt(mean_squared_error(uzneg, uz_fit)) 
+    rmse = np.sqrt(mean_squared_error(uzneg[1:-1], uz_fit[1:-1])) # Exclude the two points furthest from core 
+    rrmse_all = rmse_all / np.mean(uzneg) # Use mean of absolute values for normalization
+    rrmse = rmse / np.mean(uzneg) # Use mean of absolute values for normalization
+    RRMSEneg_all.append(rrmse_all)
     RRMSEneg.append(rrmse)
 
-print(RRMSEpos)
-print(RRMSEneg)
+print(f'RRMSEpos_all = {RRMSEpos_all}')
+print(f'RRMSEpos = {RRMSEpos}')
+
+print(f'RRMSEneg_all = {RRMSEneg_all}')
+print(f'RRMSEneg = {RRMSEneg}')
 
 # Calculate plasma properties
-for uz0 in np.unique(uz0_mag):
-    cbt_temp = cpfm.cbt(n0, uz0, rp, Tp) # Vortex constant [m]
-    p0 = cpfm.p0(cbt_temp, n0, uz0, rp) # Core plasma pressure [Pa]
-    Bmax = np.abs(cpfm.btheta_chi2_negbulk(cbt_temp, uz0, u0, n0, rp)) # Edge magnetic field [T]
-    tauE = cpfm.tauE(p0, uz0, rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
-    tauA = rp / pp.vA(Bmax, n0) # Alfvén time [s]
-    # peak_shear = cpfm.peakshear_chi2cubic()
-    peak_shear = (8.0 / 27.0) * uz0 / cbt_temp 
+# for uz0p, uz0n in zip(uz0_pos, uz0_neg):
+#     cbt_temp = cpfm.cbt(n0, np.abs(uz0p), rp, Tp) # Vortex constant [m]
+#     p0 = cpfm.p0(cbt_temp, n0, np.abs(uz0p), rp) # Core plasma pressure [Pa]
+#     Bmax = np.abs(cpfm.btheta_chi2_negbulk(cbt_temp, np.abs(uz0p), u0, n0, rp)) # Edge magnetic field [T]
+#     tauE = cpfm.tauE(p0, np.abs(uz0p), rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
+#     tauA = rp / pp.vA(Bmax, n0) # Alfvén time [s]
+#     # peak_shear = cpfm.peakshear_chi2cubic()
+#     peak_shear = (8.0 / 27.0) * uz0p / cbt_temp 
 
-    print(f'For uz0 = {uz0} m/s:')
-    print(f'  cbt = {cbt_temp} m')
-    print(f'  p0 = {p0} Pa')
-    print(f'  Bmax = {Bmax} T')
-    print(f'  tauE = {tauE} s')
-    print(f'  tauA = {tauA} s')
-    print(f'  tauE / tauA = {tauE / tauA}')
-    print(f'  Peak shear = {peak_shear} s^-1')
+#     print(f'For uz0 = {uz0p} m/s:')
+#     print(f'  cbt = {cbt_temp} m')
+#     print(f'  p0 = {p0} Pa')
+#     print(f'  Bmax = {Bmax} T')
+#     print(f'  tauE = {tauE} s')
+#     print(f'  tauA = {tauA} s')
+#     print(f'  tauE / tauA = {tauE / tauA}')
+#     print(f'  Peak shear = {peak_shear} s^-1')
 
 plt.show()
