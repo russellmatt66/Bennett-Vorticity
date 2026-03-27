@@ -31,8 +31,8 @@ rneg = r_data[r_data < 0]
 Make two fits of bulk, chi=2 cubic vortex profile to each half of the data
 """
 n0 = 1e23 # Plasma density [m^-3]; 1e22 - 1e23
-Tp = 10000 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
-uedge = 4e4 # Edge flow velocity [m/s]; 
+Tp = 10000 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV is experimental temperature of Zap 2001
+uedge = 4e4 # Edge flow velocity [m/s]; % Tie to dataset
 u0 = 10e4 # Core flow velocity [m/s]; 
 rp = 10e-3 # Pinch radius [m]; 10mm
 
@@ -40,6 +40,7 @@ rp = 10e-3 # Pinch radius [m]; 10mm
 uz0_pos = cpfm.root_solve_chi2_posbulk(uedge, u0, n0, rp, Tp)
 uz0_neg = cpfm.root_solve_chi2_negbulk(uedge, u0, n0, rp, Tp)
 
+# When to use real uz0 vs magnitude? Real uz0 loses energy when it becomes complex, but magnitude may overestimate the velocity if uz0 is complex, leading to unphysical results if uz0 > c becomes a solution.
 # uz0_pos_real = np.real(uz0_pos)
 # uz0_neg_real = np.real(uz0_neg)
 # print(f'uz0_pos = {uz0_pos_real} m/s')
