@@ -31,7 +31,7 @@ rneg = r_data[r_data < 0]
 Make two fits of bulk, chi=2 cubic vortex profile to each half of the data
 """
 n0 = 1e23 # Plasma density [m^-3]; 1e22 - 1e23
-Tp = 200 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
+Tp = 10000 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
 uedge = 4e4 # Edge flow velocity [m/s]; 
 u0 = 10e4 # Core flow velocity [m/s]; 
 rp = 10e-3 # Pinch radius [m]; 10mm
@@ -69,7 +69,7 @@ for uz0p, uz0n in zip(uz0_pos, uz0_neg):
     plt.plot(rneg * 1e3, uzneg_fit / 1e3, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
     plt.plot(r_data * 1e3, uz_data / 1e3, 'kx', label='Zap 2001 Axial Velocity Data')
 
-    plt.title(f'Analytic reconstruction of Zap 2001 axial velocity data, Root {root_num}, $r_p = 10$ mm, $n_0 = 10^{{22}}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = 10^5$ m/s)')
+    plt.title(f'Analytic reconstruction of Zap 2001 axial velocity data, Root {root_num}, $r_p = {rp*1e3}$ mm, $n_0 = {n0:.2e}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = {u0 / 1e3} $ km/s)')
     plt.xlabel('Radius (mm)')
     plt.ylabel('Axial Velocity (km/s)')
 
