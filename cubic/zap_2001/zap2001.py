@@ -31,8 +31,8 @@ rneg = r_data[r_data < 0]
 Make two fits of bulk, chi=2 cubic vortex profile to each half of the data
 """
 n0 = 1e23 # Plasma density [m^-3]; 1e22 - 1e23
-Tp = 10000 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV is experimental temperature of Zap 2001
-uedge = 4e4 # Edge flow velocity [m/s]; % Tie to dataset
+Tp = 5000 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV is experimental temperature of Zap 2001
+uedge = 4e4 # Edge flow velocity [m/s]; % Tie to dataset for better fidelity but 4e4 m/s is a reasonable estimate based on the data, which shows edge velocities around 40 km/s (4e4 m/s) at r = +/- 10 mm. This is consistent with the observed velocity profile, where the velocity at the edge (r = +/- 10 mm) is approximately 40 km/s. Using this value for uedge allows us to anchor our fits to the experimental data more accurately, ensuring that the reconstructed velocity profiles align well with the observed edge velocities in the Zap 2001 dataset.
 u0 = 10e4 # Core flow velocity [m/s]; 
 rp = 10e-3 # Pinch radius [m]; 10mm
 
