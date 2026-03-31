@@ -126,11 +126,11 @@ for uz0p, uz0n, uz0p_elv, uz0n_elv in zip(uz0_pos, uz0_neg, uz0_elv_pos, uz0_elv
     # plt.plot(rneg[:neidx] * 1e3, uzneg_fit_elv / 1e3, 'r--', label='Edge-localized, $\chi=2$, negative cubic vortex')
     plt.plot(r_pos * 1e3, uzpos_fit / 1e3, 'bo', label='Bulk, $\chi=2$, positive cubic vortex')
     plt.plot(-r_neg * 1e3, uzneg_fit / 1e3, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
-    plt.plot((rp_pos + r_elv_pos) * 1e3, uzpos_fit_elv / 1e3, 'b--', label='Edge-localized, $\chi=2$, positive cubic vortex')
+    plt.plot((rp_pos + r_elv_pos) * 1e3, uzpos_fit_elv / 1e3, 'b--', label='Edge-localized, $\chi=2$, negative cubic vortex')
     plt.plot(-(rp_neg + r_elv_neg) * 1e3, uzneg_fit_elv / 1e3, 'r--', label='Edge-localized, $\chi=2$, negative cubic vortex')
     plt.plot(r_data * 1e3, uz_data / 1e3, 'kx', label='Zap 2001 Axial Velocity Data')
 
-    # plt.title(f'Analytic reconstruction of Zap 2001 axial velocity data, Root {root_num}, $r_p = {rp*1e3}$ mm, $n_0 = {n0:.2e}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = {u0 / 1e3} $ km/s)')
+    plt.title(f'Analytic reconstruction of Zap 2001 axial velocity data, Root {root_num}, $n_0 = {n0:.2e}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = {u0 / 1e3} $ km/s)')
     plt.xlabel('Radius (mm)')
     plt.ylabel('Axial Velocity (km/s)')
 
@@ -142,34 +142,39 @@ for uz0p, uz0n, uz0p_elv, uz0n_elv in zip(uz0_pos, uz0_neg, uz0_elv_pos, uz0_elv
 # for elv_fit in uzpos_elv_fits:
 #     print(f'uzpos_elv_fit = {elv_fit}')
 
-for nelv_fit in uzneg_elv_fits:
-    print(f'uzneg_elv_fit = {nelv_fit}')
+# for nelv_fit in uzneg_elv_fits:
+#     print(f'uzneg_elv_fit = {nelv_fit}')
 
 # RRMSEpos = []
-# RRMSEpos_all = []
-# for uz_fit in uzpos_fits:
-#     rmse_all = np.sqrt(mean_squared_error(uzpos, uz_fit)) 
-#     rmse = np.sqrt(mean_squared_error(uzpos[:-1-1], uz_fit[:-1-1])) # Exclude the last two points
-#     rrmse_all = rmse_all / np.mean(uzpos)
-#     rrmse = rmse / np.mean(uzpos)
-#     RRMSEpos_all.append(rrmse_all)
-#     RRMSEpos.append(rrmse)
+RRMSEpos_all = []
+for uz_fit, uz_fit_elv in zip(uzpos_fits, uzpos_elv_fits):
+    r_fit_pos = np.concatenate([r_pos, (rp_pos + r_elv_pos)[1:]]) # Stitch domain together
+    uz_fit_combined = np.concatenate([uz_fit, uz_fit_elv[1:]]) # Stitch range together
+    uz_fit_on_exp = np.interp(rpos, r_fit_pos, uz_fit_combined) # Interpolate fit onto experimental r values
+    rmse_all = np.sqrt(mean_squared_error(uzpos, uz_fit_on_exp)) 
+    # rmse = np.sqrt(mean_squared_error(uzpos[:-1-1], uz_fit[:-1-1])) # Exclude the last two points
+    rrmse_all = rmse_all / np.mean(uzpos)
+    # rrmse = rmse / np.mean(uzpos)
+    RRMSEpos_all.append(rrmse_all)
+    # RRMSEpos.append(rrmse)
 
 # RRMSEneg = []
-# RRMSEneg_all = []
-# for uz_fit in uzneg_fits:
-#     # print(f'uzfitneg = {uz_fit}')
-#     rmse_all = np.sqrt(mean_squared_error(uzneg, uz_fit)) 
+RRMSEneg_all = []
+for uz_fit, uz_fit_elv in zip(uzneg_fits, uzneg_elv_fits):
+    r_fit_neg = np.abs(np.concatenate([r_neg, (rp_neg + r_elv_neg)[1:]])) # Stitch domain together
+    uz_fit_combined = np.concatenate([uz_fit, uz_fit_elv[1:]]) # Stitch range together
+    uz_fit_on_exp = np.interp(np.abs(rneg), r_fit_neg, uz_fit_combined) # Interpolate fit onto experimental r values
+    rmse_all = np.sqrt(mean_squared_error(uzneg, uz_fit_on_exp)) 
 #     rmse = np.sqrt(mean_squared_error(uzneg[1:-1], uz_fit[1:-1])) # Exclude the two points furthest from core 
-#     rrmse_all = rmse_all / np.mean(uzneg) # Use mean of absolute values for normalization
+    rrmse_all = rmse_all / np.mean(uzneg) # Use mean of absolute values for normalization
 #     rrmse = rmse / np.mean(uzneg) # Use mean of absolute values for normalization
-#     RRMSEneg_all.append(rrmse_all)
+    RRMSEneg_all.append(rrmse_all)
 #     RRMSEneg.append(rrmse)
 
-# print(f'RRMSEpos_all = {RRMSEpos_all}')
+print(f'RRMSEpos_all = {RRMSEpos_all}')
 # print(f'RRMSEpos = {RRMSEpos}')
 
-# print(f'RRMSEneg_all = {RRMSEneg_all}')
+print(f'RRMSEneg_all = {RRMSEneg_all}')
 # print(f'RRMSEneg = {RRMSEneg}')
 
 # Calculate plasma properties
