@@ -1,0 +1,27 @@
+#: table_doi: 10.17182/hepdata.156186.v1/t26
+#: name: $\Delta y_{ch,Z}$ in PbPb 50-90% for $2 < p_T < 4$ GeV
+#: description: The $\Delta y_{ch,Z}$ spectra for events with Z boson $p_{T}^Z > 40$ GeV and charged-hadrons with $2 <p_T < 4$ GeV in PbPb for centrality interval of 50-90% collisions.
+#: data_file: $\delta_y_{ch,z}$_in_pbpb_50-90%_for_$2_<_p_t_<_4$_gev.yaml
+#: keyword observables: dNchdYZ spectra
+#: keyword phrases: Inclusive Z | Rapidity | Azimuthal | Differential
+#: keyword reactions: PbPb --> Z+X
+#: keyword cmenergies: 5020
+#: PTZ,,,40 < $p_{T}^{Z}$ < 350 GeV
+#: PTCH,,,2 < $p_{T}^{ch}$ < 4 GeV
+#: ABS(YZ),,,$|y_Z|$ < 2.4
+#: ABS(ETACH),,,$|\eta^{ch}|$ < 2.4
+#: SQRT(S)/NUCLEON,,,5020 GeV
+#: RE,,,Pb Pb --> Z + X
+#: CENTRALITY,,,50--90%
+"$\Delta y_{ch,Z}$","$\Delta y_{ch,Z}$ LOW","$\Delta y_{ch,Z}$ HIGH","$d<N_{ch}>/d(\Delta y_{ch,Z})$",Stat. +,Stat. -,Syst. +,Syst. -
+-3.6,-4.0,-3.2,-0.0190,0.0553,-0.0553,0.0147,-0.0147
+-2.8,-3.2,-2.4,-0.2003,0.0865,-0.0865,0.0150,-0.0150
+-2.0,-2.4,-1.6,-0.3896,0.1121,-0.1121,0.0151,-0.0151
+-1.2000000000000002,-1.6,-0.8,-0.0691,0.1558,-0.1558,0.0155,-0.0155
+-0.4,-0.8,0.0,-0.3933,0.1634,-0.1634,0.0148,-0.0148
+0.4,0.0,0.8,-0.3933,0.1634,-0.1634,0.0148,-0.0148
+1.2000000000000002,0.8,1.6,-0.0691,0.1558,-0.1558,0.0155,-0.0155
+2.0,1.6,2.4,-0.3896,0.1121,-0.1121,0.0151,-0.0151
+2.8,2.4,3.2,-0.2003,0.0865,-0.0865,0.0150,-0.0150
+3.6,3.2,4.0,-0.0190,0.0553,-0.0553,0.0147,-0.0147
+
