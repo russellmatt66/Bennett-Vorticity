@@ -200,4 +200,6 @@ plt.legend()
 # plt.title('Light emission profiles from Li et al. 2021 Figure 3')
 # plt.legend()
 
+# CALCULATE RRMSE
+
 plt.show()
