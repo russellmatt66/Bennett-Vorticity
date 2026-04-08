@@ -52,13 +52,14 @@ Iz_highres_data = pd.read_csv('../../experimental_data/li_2021/Figure3_Iz_highre
 
 # print(Iz_highres_data.head())
 
-Iz_highres = pd.DataFrame({
+Iz_highres_raw = pd.DataFrame({
     'r (mm)': Iz_highres_data.iloc[:, 0], 
     'Iz (A.U.)' : Iz_highres_data.iloc[:, 1],
 }).dropna().sort_values(by='r (mm)', ascending=True)
 
-threshold_dr = 0.001 # for eliminating duplicates from manual digitization of data 
-Iz_highres = Iz_highres[Iz_highres['r (mm)'].diff().fillna(np.inf) > threshold_dr] # eliminate duplicates (jitter) from manual digitization of high-res data
+# threshold_dr = 0.001 # for eliminating duplicates from manual digitization of data 
+# Iz_highres = Iz_highres[Iz_highres['r (mm)'].diff().fillna(np.inf) > threshold_dr] # eliminate duplicates (jitter) from manual digitization of high-res data
+Iz_highres = Iz_highres_raw.groupby('r (mm)').mean().reset_index().sort_values('r (mm)')
 
 # Attempted smoothing of high-res data with Savitsky-Golay filter, but it seems to distort the profile too much, so commenting out for now
 # threshold_I = 3.0
@@ -180,17 +181,17 @@ plt.figure()
 plt.scatter(Iz_highres['r (mm)'], Iz_highres['Iz (A.U.)'], label='Li et al. (2021) Iz')
 plt.scatter(Iz_needletip['r (mm)'], Iz_needletip['Iz (A.U.)'], label='Li et al. (2021) Needletip Iz')
 for i in range(len(uz_fits_front)):
-    plt.plot(-r_front * 1e3 + z0, alpha * cnst.q_e * n0 * uz_fits_front[i], label=f'Front Vortex {i+1}, $r_{{p}}$={rp_front*1e3:.0f} mm, $T_{{p}}$ = {Tp_front:.0f} K')
+    plt.plot(-r_front * 1e3 + z0, alpha * cnst.q_e * n0 * uz_fits_front[i], label=f'Front Vortex {i+1}, $r_{{p}}$={rp_front*1e3:.0f} mm, $C_{{B,T}}$ = {cbts_front[i]:.2e} m')
 
 for j in range (len(uz_fits_wake)):
-    plt.plot(r_wake * 1e3 + z0, alpha * cnst.q_e * n0 * uz_fits_wake[j], label=f'Wake Vortex {j+1}, $r_{{p}}$={rp_wake*1e3:.0f} mm, $T_{{p}}$ = {Tp_wake:.0f} K')
+    plt.plot(r_wake * 1e3 + z0, alpha * cnst.q_e * n0 * uz_fits_wake[j], label=f'Wake Vortex {j+1}, $r_{{p}}$={rp_wake*1e3:.0f} mm, $C_{{B,T}}$ = {cbts_wake[j]:.2e} m')
 
 for k in range (len(uz_fits_needletip)):
-    plt.plot(-r_needletip * 1e3 + z0_needletip, alpha * cnst.q_e * n0 * uz_fits_needletip[k], label=f'Needletip Vortex {k+1}, $r_{{p}}$={rp_needletip*1e3:.0f} mm, $T_{{p}}$ = {Tp_needletip:.0f} K')
+    plt.plot(-r_needletip * 1e3 + z0_needletip, alpha * cnst.q_e * n0 * uz_fits_needletip[k], label=f'Needletip Vortex {k+1}, $r_{{p}}$={rp_needletip*1e3:.0f} mm, $C_{{B,T}}$ = {cbts_needletip[k]:.2e} m')
 
 plt.xlabel('r (mm)')
 plt.ylabel('Intensity (A.U.)')
-plt.title(f'Vortex fits to Li et al. (2021) intensity')
+plt.title(f'Vortex fits to Li et al. (2021) intensity, u0 = {u0:.2e} m/s, n0 = {n0} $m^{{-3}}$')
 plt.legend()
 
 # plt.figure()
@@ -201,5 +202,48 @@ plt.legend()
 # plt.legend()
 
 # CALCULATE RRMSE
+rmin_front = z0 - r_front.max() * 1e3
+rmax_front = z0
+print(f'rmin_front = {rmin_front} mm, rmax_front = {rmax_front} mm')
+front_mask = (Iz_highres['r (mm)'].values >= rmin_front) & (Iz_highres['r (mm)'].values <= rmax_front)
+Iz_highres_front = Iz_highres[front_mask]
+for i in range(len(uz_fits_front)):
+    Ifront = alpha * cnst.q_e * n0 * uz_fits_front[i]
+    model_x = (-r_front * 1e3 + z0)[::-1] # reverse from descending to ascending order
+    model_y = Ifront[::-1]
+    exp_y = Iz_highres_front['Iz (A.U.)'].values
+    Ifront_interp = np.interp(Iz_highres_front['r (mm)'].values, model_x, model_y)
+    rrmse_front = np.sqrt(mean_squared_error(exp_y, Ifront_interp)) / (exp_y.max() - exp_y.min())
+    print(f'RRMSE for front vortex {i+1}: {rrmse_front}')
+
+
+rmin_wake = z0 
+rmax_wake = z0 + r_wake.max() * 1e3
+print(f'rmin_wake = {rmin_wake} mm, rmax_wake = {rmax_wake} mm')
+wake_mask = (Iz_highres['r (mm)'].values >= rmin_wake) & (Iz_highres['r (mm)'].values <= rmax_wake)
+Iz_highres_wake = Iz_highres[wake_mask]
+for j in range(len(uz_fits_wake)):
+    Iwake = alpha * cnst.q_e * n0 * uz_fits_wake[j]
+    model_x = (r_wake * 1e3 + z0)
+    model_y = Iwake
+    exp_y = Iz_highres_wake['Iz (A.U.)'].values
+    Iwake_interp = np.interp(Iz_highres_wake['r (mm)'].values, model_x, model_y)
+    rrmse_wake = np.sqrt(mean_squared_error(exp_y, Iwake_interp)) / (exp_y.max() - exp_y.min())
+    print(f'RRMSE for wake vortex {j+1}: {rrmse_wake}')
+
+rmin_needletip = z0_needletip - r_needletip.max() * 1e3
+rmax_needletip = z0_needletip
+print(f'rmin_needletip = {rmin_needletip} mm, rmax_needletip = {rmax_needletip} mm')
+needletip_mask = (Iz_needletip['r (mm)'].values >= rmin_needletip) & (Iz_needletip['r (mm)'].values <= rmax_needletip)
+Iz_highres_needletip = Iz_needletip[needletip_mask]
+for k in range(len(uz_fits_needletip)):
+    Ineedletip = alpha * cnst.q_e * n0 * uz_fits_needletip[k]
+    model_x = (-r_needletip * 1e3 + z0_needletip)[::-1]
+    model_y = Ineedletip[::-1]
+    Ineedletip_interp = np.interp(Iz_highres_needletip['r (mm)'].values, model_x, model_y)
+    exp_y = Iz_highres_needletip['Iz (A.U.)'].values
+    rrmse_needletip = np.sqrt(mean_squared_error(exp_y, Ineedletip_interp)) / (exp_y.max() - exp_y.min())
+    print(f'RRMSE for needletip vortex {k+1}: {rrmse_needletip}')
+
 
 plt.show()
