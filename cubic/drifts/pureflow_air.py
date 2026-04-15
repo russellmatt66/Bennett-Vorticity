@@ -1,5 +1,9 @@
 """
 Plot the plasma drifts for a pureflow cubic air vortex 
+
+NOTE
+o This file has problems with numerical instability due to natural logarithms in the magnetic field (cyclotron frequency)
+o The solution is to calculate the magnetic field numerically instead of analytically 
 """
 import sys
 import pathlib
@@ -18,6 +22,8 @@ from modules import spitzer as spz
 import numpy as np
 import matplotlib.pyplot as plt
 
+from scipy.integrate import cumulative_trapezoid
+
 ###
 mj = cnst.mair # Ion mass [kg]
 qj = cnst.q_e # Ion charge [C]
@@ -30,7 +36,7 @@ rp = 10e-3 # Pinch radius [m]
 L = 1 # Pinch length [m]
 
 num_r = 32000
-rinterior = 1e-6 # Avoid singularity at r=0 for calculating drifts
+rinterior = 1e-5 # Avoid singularity at r=0 for calculating drifts
 r = np.linspace(rinterior, rp, num_r)
 T = Tp / rp**3 * r**3 # Cubic
 
@@ -73,9 +79,14 @@ vmin_gradB = []
 for uz0 in uz0_roots:
     cbt = cpfm.cbt(n0, np.abs(uz0), rp, Tp) # Vortex constant [m]
     uz = cpfm.uz_chi2cubic_pure(cbt, np.abs(uz0), r)
-    btheta = cpfm.btheta_chi2(cbt, np.abs(uz0), n0, r)
+    # btheta = cpfm.btheta_chi2(cbt, np.abs(uz0), n0, r)
+    Jz = n0 * cnst.q_e * uz # Current density [A/m^2]
+    Iencl = 2 * np.pi * cumulative_trapezoid(Jz * r, r, initial=0) # Enclosed current [A]
+    btheta = cnst.mu0 * Iencl / (2 * np.pi * r) # Magnetic field [T]
+    btheta[0] = btheta[1] # Avoid singularity at r=0 in the drift calculations
     lapU = cpfm.LapU_chi2cubic_pure(cbt, np.abs(uz0), r)
-    gradB = cpfm.gradbtheta_chi2cubic_pure(cbt, np.abs(uz0), n0, r)
+    # gradB = cpfm.gradbtheta_chi2cubic_pure(cbt, np.abs(uz0), n0, r)
+    gradB = np.gradient(btheta, r) # Numerical gradient to avoid instability from analytical expression
     uzs.append(uz)
     cbts.append(cbt)
     Bthetas.append(btheta)
@@ -89,12 +100,12 @@ for uz0 in uz0_roots:
     v_EB.append(drifts.ExB_drift(mj, T, btheta, qj, uz, lapU)) # Depends on LapU, so calculate later
     v_gradB.append(drifts.gradB_drift(mj, qj, btheta, gradB, uz)) # Depends on gradB, so calculate later
     vpeak_resistive.append(np.max(v_resistive[-1]))
-    vpeak_wf.append(np.max(vg_wf[-1]))
+    vpeak_wf.append(np.max(np.abs(vg_wf[-1])))
     vpeak_shell.append(np.max(vg_shell[-1]))
     vpeak_EB.append(np.max(v_EB[-1]))
     vpeak_gradB.append(np.max(v_gradB[-1]))
     vmin_resistive.append(np.min(v_resistive[-1]))
-    vmin_wf.append(np.min(vg_wf[-1]))
+    vmin_wf.append(np.min(np.abs(vg_wf[-1])))
     vmin_shell.append(np.min(vg_shell[-1]))
     vmin_EB.append(np.min(v_EB[-1]))
     vmin_gradB.append(np.min(v_gradB[-1]))
@@ -119,7 +130,7 @@ for i, uz0 in enumerate(uz0_roots):
     # drift_ax.plot(r*1e3, v_gradB[i], label=f'Grad-B (axial) drift')
     # drift_ax.plot(r*1e3, v_EB[i], label=f'ExB (axial) drift')
     drift_ax.loglog(r*1e3, uzs[i], label=f'Diamagnetic drift (velocity profile)') # meters to millimeters
-    drift_ax.loglog(r*1e3, vg_wf[i], label=f'Waterfall gravitational (radial) drift')
+    drift_ax.loglog(r*1e3, np.abs(vg_wf[i]), label=f'Waterfall gravitational (radial) drift')
     drift_ax.loglog(r*1e3, v_resistive[i], label=f'Resistive (radial) drift')
     drift_ax.loglog(r*1e3, vg_shell[i], label=f'Shell gravitational (axial) drift')
     drift_ax.loglog(r*1e3, v_gradB[i], label=f'Grad-B (axial) drift')
