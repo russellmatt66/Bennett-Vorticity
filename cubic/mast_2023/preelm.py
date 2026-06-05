@@ -44,8 +44,8 @@ print(f'Max current density Jzmax = {Jzmax} MA/m^2 at R = {r_Jmax - rmin} m')
 # Wake (positive bulk flow)
 num_r = 1000
 r_wake = np.linspace(0.0, r_Jmax - rmin, num_r) # Radial positions for wake fit, from 0 to R at max current density
-n0 = 1e20 # Plasma density [m^-3]; 1e19 - 1e20
-Tp = 300 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 200 - 300 eV is experimental temperature of MAST pre-ELM
+n0 = 2e19 # Plasma density [m^-3]; 1e19 - 1e20
+Tp = 250 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 200 - 300 eV is experimental temperature of MAST pre-ELM
 rp = r_Jmax - rmin # Pinch radius [m]; Tie to dataset for better fidelity   
 u0 = 1e6 * uz_df['J_phi (MA / m^2)'][rminidx] / (cnst.q_e * n0) # Core flow velocity [m/s]; J = n e u => u = J / (n e)
 uedge = 1e6 * uz_df['J_phi (MA / m^2)'][Jmaxidx] / (cnst.q_e * n0) # Edge flow velocity [m/s]; J = n e u => u = J / (n e)
@@ -62,7 +62,7 @@ wake_cbts = []
 for uz0_root in uz0_roots:
     uz0 = np.abs(uz0_root) # Take magnitude
     cbt = cpfm.cbt(n0, uz0, rp, Tp) # Vortex constant [m]
-    print(f'cbt for uz0 = {uz0} m/s: {cbt} m')
+    print(f'cbt for uz0 = {uz0:2e} m/s: {cbt} m')
     wake_cbts.append(cbt)
 
     uz_fit = cpfm.uz_chi2cubic_posbulk(cbt, uz0, u0, r_wake)
@@ -105,8 +105,22 @@ for i, uz_fit in enumerate(wake_fits):
 for i, uz_fit in enumerate(front_fits):
     plt.plot(r_front, uz_fit / 1e6 * cnst.q_e * n0, label=f'Root {i+1}, cbt = {front_cbts[i]:.4f} m')
 
-
 plt.title(f'Cubic vortex solutions to MAST pre-ELM toroidal current density profile, $r_p = {rp:.3f}$ m, $n_0 = {n0:.2e}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = {u0_front / 1e6:.2f}$ Mm/s)')  
+plt.xlabel('Radius (m)')
+plt.ylabel('$J_\\phi$ (MA/m$^2$)')
+
+plt.legend()
+
+# Just plot the best roots together
+plt.figure()
+plt.plot(uz_df['Radius (m)'][rminidx:] - rmin, uz_df['J_phi (MA / m^2)'][rminidx:], label='MAST Pre-ELM J_phi')
+plt.plot(r_wake, wake_fits[2] / 1e6 * cnst.q_e * n0, label=f'Wake fit, cbt = {wake_cbts[2]:.4f} m')
+plt.plot(r_front, front_fits[2] / 1e6 * cnst.q_e * n0, label=f'Front fit, cbt = {front_cbts[2]:.4f} m')
+
+plt.title(f'Cubic vortex solutions to MAST pre-ELM toroidal current density profile, $r_p = {rp:.3f}$ m, $n_0 = {n0:.2e}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = {u0_front / 1e6:.2f}$ Mm/s)')
+plt.xlabel('Radius (m)')
+plt.ylabel('$J_\\phi$ (MA/m$^2$)')
+
 plt.legend()
 
 RRMSEwake = []
