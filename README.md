@@ -9,4 +9,7 @@ Repository where codes that make calculations applying the Bennett vortex theory
 - Where the modules are
 
 `cubic/`
-- Where the fits of the experimental data to cubic vortices is
+- Where the solutions of cubic vortices to experimental data are
+
+`analytic_fits/`
+- Data related to debugging and storing processed datasets
