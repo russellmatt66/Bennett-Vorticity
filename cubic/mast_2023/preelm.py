@@ -68,7 +68,6 @@ for uz0_root in uz0_roots:
     uz_fit = cpfm.uz_chi2cubic_posbulk(cbt, uz0, u0, r_wake)
     wake_fits.append(uz_fit)
 
-
 # Front (negative bulk flow)
 r_front = np.linspace(r_Jmax - rmin, rmax - rmin, num_r) # Radial positions for front fit, from R at max current density to max radius
 
