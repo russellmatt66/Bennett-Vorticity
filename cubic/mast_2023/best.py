@@ -148,7 +148,9 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
 
 print('Best solution obtainment halted')
 
-# Save data to ../analytic_fits/mast_2023/
+# Save RRMSE values to ../analytic_fits/mast_2023/
+pd.Series(best_wake_rrmses, name='rrmse').to_csv('../../analytic_fits/mast_2023/best_wake_rrmses.csv', index=False)
+pd.Series(best_front_rrmses, name='rrmse').to_csv('../../analytic_fits/mast_2023/best_front_rrmses.csv', index=False)
 
 # Create band plots showing the range over which these best solutions vary next to the experimental data
 plt.figure()

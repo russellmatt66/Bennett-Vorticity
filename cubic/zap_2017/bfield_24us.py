@@ -13,17 +13,28 @@ from modules import cubic_pureflow_module as cpfm
 from scipy.integrate import cumulative_trapezoid
 '''
 Calculate the magnetic field for Zap-HD values
+
+Getting complex conjugate pairs for the roots
+Needs more investigation
+For example, why does Shumlak et. al 2017 say the pinch radius is 3mm instead of 15mm?
 '''
 Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K] 
 n0 = 1e23 # m^-3
-rp = 3e-3 # Pinch radius [m]
+rp = 3e-3 # Pinch radius [m] - WHY is Shumlak et. al 2017 saying 3mm instead of 15mm?
 
 # t = 24us
 u0 = 75e3 # Core flow velocity [m/s] 
 uedge = 175e3 # Edge flow velocity [m/s]
 
-num_r = 100
+num_r = 500
 r = np.linspace(0, rp, num_r) # Radial grid for fitting
+
+def solve_bfield(uz: np.ndarray, r: np.ndarray) -> np.ndarray:
+    J = n0 * cnst.q_e * uz # Current density [A/m^2]
+    Iencl = 2 * np.pi * cumulative_trapezoid(J * r, r, initial=0) # Enclosed current [A]
+    B = cnst.mu0 * Iencl / (2 * np.pi * r) # Magnetic field [T]
+    B[0] = 0 # Set B=0 at r=0 to avoid singularity for plotting
+    return B
 
 # Calculate the current density profile
 # This depends on which pulse you are using
@@ -35,8 +46,7 @@ bfields = []
 for root in uz0_roots:
     cbt = cpfm.cbt(n0, np.abs(root), rp, Tp)
     uz_profile = cpfm.uz_chi2cubic_posbulk(cbt, np.abs(root), u0, r)
-    # Integrate the magnetic field
-    bfield = cumulative_trapezoid(uz_profile, r, initial=0) * cnst.mu0 * n0 * cnst.q_e
+    bfield = solve_bfield(uz_profile, r)
     uz_profiles.append(uz_profile)
     bfields.append(bfield)
 
@@ -47,5 +57,7 @@ for root, uz_profile in zip(uz0_roots, uz_profiles):
 plt.figure()
 for root, bfield in zip(uz0_roots, bfields):
     plt.plot(r, bfield, label=f'B-field for uz0 = {root:.2e} m/s')
+
+
 
 plt.show()
