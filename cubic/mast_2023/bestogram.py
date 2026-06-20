@@ -17,6 +17,30 @@ bfr_df = pd.read_csv('../../analytic_fits/mast_2023/best_front_rrmses.csv', head
 bwr_rrmses = pd.to_numeric(bwr_df['rrmse'], errors='coerce').dropna().astype(float).to_numpy()
 bfr_rrmses = pd.to_numeric(bfr_df['rrmse'], errors='coerce').dropna().astype(float).to_numpy()
 
+bwr_average = np.mean(bwr_rrmses)
+bfr_average = np.mean(bfr_rrmses)
+
+print(f'Average RRMSE for best wake solutions: {bwr_average:.4f}')
+print(f'Average RRMSE for best front solutions: {bfr_average:.4f}')
+
+bwr_std = np.std(bwr_rrmses)
+bfr_std = np.std(bfr_rrmses)
+
+print(f'Standard deviation of RRMSE for best wake solutions: {bwr_std:.4f}')
+print(f'Standard deviation of RRMSE for best front solutions: {bfr_std:.4f}')
+
+bwr_max = np.max(bwr_rrmses)
+bfr_max = np.max(bfr_rrmses)
+
+print(f'Max RRMSE for best wake solutions: {bwr_max:.4f}')
+print(f'Max RRMSE for best front solutions: {bfr_max:.4f}')
+
+bwr_min = np.min(bwr_rrmses)
+bfr_min = np.min(bfr_rrmses)
+
+print(f'Min RRMSE for best wake solutions: {bwr_min:.4f}')
+print(f'Min RRMSE for best front solutions: {bfr_min:.4f}')
+
 all_vals = np.concatenate([bwr_rrmses, bfr_rrmses])
 bins = np.linspace(all_vals.min(), all_vals.max(), 21)  # 20 bins
 
