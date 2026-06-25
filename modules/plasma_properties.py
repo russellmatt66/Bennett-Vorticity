@@ -37,3 +37,21 @@ def vth(T: float, mj: float) -> float:
     o mj - Mass of the particle (kg)
     '''
     return np.sqrt(2 * cnst.kB * T / mj)
+
+def omega_pe(n: float) -> float:
+    '''
+    Electron plasma frequency
+    Units: [rad/s]
+    o n - Plasma density (m^-3)
+    '''
+    return np.sqrt(n * cnst.q_e**2 / (cnst.eps0 * cnst.me))
+
+def nu_ei(n: float, T: float, ln_Lambda: float) -> float:
+    '''
+    Electron-ion collision frequency
+    Units: [s^-1]
+    o n - Plasma density (m^-3)
+    o T - Temperature (K)
+    o ln_Lambda - Coulomb logarithm
+    '''
+    return 2.91e-6 * n * ln_Lambda / T**(3/2)
