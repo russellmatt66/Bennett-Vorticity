@@ -1,5 +1,10 @@
 '''
 Just plot the best solutions and then use them to create a beautiful figure showing the range over which these solutions vary next to the experimental data.
+
+DIIID has negative current density in both regions indicating that a solution needs to be chained together.
+
+It also looks like the broad flat region of the current density profile is not well captured by it, which is expected because this is local and describes a large shear that suddenly onsets
+Therefore, we should investigate the possibility of using a different model for the broad flat region, with the cubic model being used for the shear region.
 '''
 import sys
 import pathlib
@@ -16,8 +21,8 @@ from modules import cubic_pureflow_module as cpfm
 from sklearn.metrics import mean_squared_error
 
 # Specify sweep & read in data
-Tp_min = 200 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 200 - 300 eV is experimental temperature of MAST pre-ELM
-Tp_max = 300 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 200 - 300 eV is experimental temperature of MAST pre-ELM
+Tp_min = 1e3 * cnst.eV_to_K # Plasma temperature [K]; 
+Tp_max = 2e3 * cnst.eV_to_K # Plasma temperature [K]; 
 
 n0_min = 1e19 # m^-3
 n0_max = 1e20 # m^-3
@@ -26,21 +31,24 @@ N_sweep = 25
 n0_sweep = np.linspace(n0_min, n0_max, N_sweep) # Sweep over density
 Tp_sweep = np.linspace(Tp_min, Tp_max, N_sweep) # Sweep over temperature
 
-uz_df = pd.read_csv('../../experimental_data/mast_2023/Jtoroidal_MAST_preELM.csv')
-uz_df.drop(columns=['Unnamed: 1'], inplace=True)
-uz_df.sort_values(by='Radius (m)', inplace=True)
 
-rminidx = uz_df['J_phi (MA / m^2)'][:uz_df['J_phi (MA / m^2)'].idxmax()].idxmin() # Index of minimum current density before max
-rmin = uz_df['Radius (m)'][rminidx] # Radius at minimum current density
+uz_df = pd.read_csv('../../experimental_data/DIIID/DIIID_2005_positive.csv')
+# uz_df.drop(columns=['Unnamed: 1'], inplace=True)
+uz_df.columns = uz_df.columns.str.strip()
+uz_df.sort_values(by='R (m)', inplace=True)
 
-rmax = uz_df['Radius (m)'].max() # Maximum radius
-rmaxidx = uz_df['Radius (m)'].idxmax() # Index of maximum radius
+rminidx = uz_df['J (MA / m^2)'][:uz_df['J (MA / m^2)'].idxmax()].idxmin() # Index of minimum current density before max
+rmin = uz_df['R (m)'][rminidx] # Radius at minimum current density
 
-Jmaxidx = uz_df['J_phi (MA / m^2)'].idxmax() # Index of maximum current density
-r_Jmax = uz_df['Radius (m)'][Jmaxidx] # R at maximum current density
-Jzmax = uz_df['J_phi (MA / m^2)'][Jmaxidx]
+# HOW TO CHANGE THIS SO WE START NEAR THE BASE OF THE SHEAR LAYER?
+rmax = uz_df['R (m)'].max() # Maximum radius
+rmaxidx = uz_df['R (m)'].idxmax() # Index of maximum radius
 
-num_r = 10000
+Jmaxidx = uz_df['J (MA / m^2)'].idxmax() # Index of maximum current density
+r_Jmax = uz_df['R (m)'][Jmaxidx] # R at maximum current density
+Jzmax = uz_df['J (MA / m^2)'][Jmaxidx]
+
+num_r = 1000
 r_wake = np.linspace(0.0, r_Jmax - rmin, num_r) # Radial positions for wake solution, from 0 to R at max current density
 rp_wake = r_Jmax - rmin # Pinch radius [m]; Tied to dataset for better fidelity   
 
@@ -56,8 +64,8 @@ for ns in range(N_sweep):
     for ts in range(N_sweep):
         n0 = n0_sweep[ns]
         Tp = Tp_sweep[ts]
-        u0_wake = 1e6 * uz_df['J_phi (MA / m^2)'][rminidx] / (cnst.q_e * n0) # Core flow velocity [m/s]; J = n e u => u = J / (n e)
-        uedge_wake = 1e6 * uz_df['J_phi (MA / m^2)'][Jmaxidx] / (cnst.q_e * n0) # Edge flow velocity [m/s]; J = n e u => u = J / (n e)
+        u0_wake = 1e6 * uz_df['J (MA / m^2)'][rminidx] / (cnst.q_e * n0) # Core flow velocity [m/s]; J = n e u => u = J / (n e)
+        uedge_wake = 1e6 * uz_df['J (MA / m^2)'][Jmaxidx] / (cnst.q_e * n0) # Edge flow velocity [m/s]; J = n e u => u = J / (n e)
         uz0_roots = cpfm.root_solve_chi2_posbulk(uedge_wake, u0_wake, n0, rp_wake, Tp)
         wake_solns = []
         wake_cbts = []
@@ -81,7 +89,7 @@ for ns in range(N_sweep):
         n0 = n0_sweep[ns]
         Tp = Tp_sweep[ts]
         u0_front = 1e6 * Jzmax / (cnst.q_e * n0) # Core flow velocity [m/s]; J = n e u => u = J / (n e)
-        uedge_front = 1e6 * uz_df['J_phi (MA / m^2)'][rmaxidx] / (cnst.q_e * n0) # Edge flow velocity [m/s]; J = n e u => u = J / (n e)
+        uedge_front = 1e6 * uz_df['J (MA / m^2)'][rmaxidx] / (cnst.q_e * n0) # Edge flow velocity [m/s]; J = n e u => u = J / (n e)
         uz0_roots = cpfm.root_solve_chi2_negbulk(uedge_front, u0_front, n0, rp_front, Tp)
         front_solns = []
         front_cbts = []
@@ -110,13 +118,13 @@ best_front_n0s = []
 
 for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
     n0 = n0_sweep[nss // N_sweep]
-    uz_wake = uz_df['J_phi (MA / m^2)'][rminidx:Jmaxidx] / (cnst.q_e * n0) * 1e6 # Convert J to uz for wake region
+    uz_wake = uz_df['J (MA / m^2)'][rminidx:Jmaxidx] / (cnst.q_e * n0) * 1e6 # Convert J to uz for wake region
     wake_solns_temp = all_wake_solns[nss]
     rrmse_min = np.inf
     best_wake_soln = None
     best_wake_cbt = None
     for iw, wake_soln in enumerate(wake_solns_temp):
-        uz_soln_interp = np.interp(uz_df['Radius (m)'][rminidx:Jmaxidx] - rmin, r_wake, wake_soln) # Interpolate fit to data points
+        uz_soln_interp = np.interp(uz_df['R (m)'][rminidx:Jmaxidx] - rmin, r_wake, wake_soln) # Interpolate fit to data points
         rmse = np.sqrt(mean_squared_error(uz_wake, uz_soln_interp))
         rrmse = rmse / (uz_wake.max() - uz_wake.min()) # Normalize by range of data
         if rrmse < rrmse_min:
@@ -132,11 +140,11 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
 
 for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
     n0 = n0_sweep[nss // N_sweep]
-    uz_front = uz_df['J_phi (MA / m^2)'][Jmaxidx:rmaxidx] / (cnst.q_e * n0) * 1e6 # Convert J to uz for front region
+    uz_front = uz_df['J (MA / m^2)'][Jmaxidx:rmaxidx] / (cnst.q_e * n0) * 1e6 # Convert J to uz for front region
     front_solns_temp = all_front_solns[nss]
     rrmse_min = np.inf
     for ifr, front_soln in enumerate(front_solns_temp):
-        uz_soln_interp = np.interp(uz_df['Radius (m)'][Jmaxidx:rmaxidx] - rmin, r_front, front_soln) # Interpolate fit to data points
+        uz_soln_interp = np.interp(uz_df['R (m)'][Jmaxidx:rmaxidx] - rmin, r_front, front_soln) # Interpolate fit to data points
         rmse = np.sqrt(mean_squared_error(uz_front, uz_soln_interp))
         rrmse = rmse / (uz_front.max() - uz_front.min()) # Normalize by range of data
         if rrmse < rrmse_min:
@@ -148,13 +156,13 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
 
 print('Best solution obtainment halted')
 
-# Save RRMSE values to ../analytic_fits/mast_2023/
-pd.Series(best_wake_rrmses, name='rrmse').to_csv('../../analytic_fits/mast_2023/best_wake_rrmses.csv', index=False)
-pd.Series(best_front_rrmses, name='rrmse').to_csv('../../analytic_fits/mast_2023/best_front_rrmses.csv', index=False)
+# Save RRMSE values to ../analytic_fits/DIIID/
+pd.Series(best_wake_rrmses, name='rrmse').to_csv('../../analytic_fits/DIIID/best_wake_rrmses.csv', index=False)
+pd.Series(best_front_rrmses, name='rrmse').to_csv('../../analytic_fits/DIIID/best_front_rrmses.csv', index=False)
 
 # Create band plots showing the range over which these best solutions vary next to the experimental data
 plt.figure()
-plt.scatter(uz_df['Radius (m)'][rminidx:] - rmin, uz_df['J_phi (MA / m^2)'][rminidx:], label='MAST Pre-ELM J_phi')
+plt.plot(uz_df['R (m)'][rminidx:] - rmin, uz_df['J (MA / m^2)'][rminidx:], label='MAST Pre-ELM J_phi')
 for i, wake_soln in enumerate(best_wake_solns):
     # if best_wake_rrmses[i] < 0.1 and best_wake_cbts[i] < 0.35 * rp_wake: # Threshold to avoid clutter
     if best_wake_rrmses[i] < 0.1: # Threshold to avoid clutter

@@ -1,0 +1,1 @@
+DIIID folder. Negative current densities are addresed by solving for a vortex in the positive region. The vortices in the negative region are solved for independently.
