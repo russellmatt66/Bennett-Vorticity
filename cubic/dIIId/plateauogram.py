@@ -18,7 +18,7 @@ wake_rrmses_root_str = "best_wake_rrmses"
 platidx_low = int(sys.argv[1])
 platidx_high = int(sys.argv[2])
 
-for idx in range(platidx_low, platidx_high):
+for idx in range(platidx_low, platidx_high + 1):
     front_rrmses_filename = f'../../analytic_fits/DIIID/{front_rrmses_root_str}_rplatidx{idx}.csv'
     wake_rrmses_filename = f'../../analytic_fits/DIIID/{wake_rrmses_root_str}_rplatidx{idx}.csv'
 

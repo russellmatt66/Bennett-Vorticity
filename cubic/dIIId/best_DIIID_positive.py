@@ -27,7 +27,7 @@ Tp_max = 700 * cnst.eV_to_K # Plasma temperature [K];
 n0_min = 1e19 # m^-3
 n0_max = 1e20 # m^-3
 
-N_sweep = 100 # Number of points in the sweep for both n0 and Tp
+N_sweep = 25 # Number of points in the sweep for both n0 and Tp
 n0_sweep = np.linspace(n0_min, n0_max, N_sweep) # Sweep over density
 Tp_sweep = np.linspace(Tp_min, Tp_max, N_sweep) # Sweep over temperature
 
@@ -185,7 +185,7 @@ for i, front_soln in enumerate(best_front_solns):
     if best_front_rrmses[i] < 0.2: # Threshold to avoid clutter
         plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
 
-plt.title(f'Cubic vortex solutions to DIIID edge pedestal toroidal current density profile, $N_{{sweep}}$ = {N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
+plt.title(f'Cubic vortex solutions to DIIID edge pedestal toroidal current density profile, $N$ = {N_sweep * N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
 plt.xlabel('Radius (m)')
 plt.ylabel('$J_\\phi$ (MA/m$^2$)')
 # plt.legend()

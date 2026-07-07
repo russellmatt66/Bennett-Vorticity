@@ -51,13 +51,13 @@ fig, ax = plt.subplots(1, 2, figsize = (10, 4), sharey=True)
 ax[0].hist(bwr_rrmses, bins=bins, alpha=0.5)
 ax[0].set_xlabel('Range-Normalized Relative Root Mean Squared Error (RRMSE)')
 ax[0].set_ylabel('Frequency')
-ax[0].set_title(f'Histogram of RRMSE for Best Wake Solutions to DIIID 2023 Edge Pedestal, N={N_sweep}')
+ax[0].set_title(f'Histogram of RRMSE for Best Wake Solutions to DIIID 2005 Edge Pedestal, N={N_sweep}')
 ax[0].legend()
 
 ax[1].hist(bfr_rrmses, bins=bins, alpha=0.5)
 ax[1].set_xlabel('Range-Normalized Relative Root Mean Squared Error (RRMSE)')
 ax[1].set_ylabel('Frequency')
-ax[1].set_title(f'Histogram of RRMSE for Best Front Solutions to DIIID 2023 Edge Pedestal Sweep, N={N_sweep}')
+ax[1].set_title(f'Histogram of RRMSE for Best Front Solutions to DIIID 2005 Edge Pedestal Sweep, N={N_sweep}')
 ax[1].legend()
 
 tick_edges = bins[::2]  # every 2nd edge so labels are readable

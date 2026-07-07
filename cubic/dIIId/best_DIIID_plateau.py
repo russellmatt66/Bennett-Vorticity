@@ -195,21 +195,22 @@ for r_plateau_val, r_plateau_idx_val in zip(r_plateau, r_plateau_idx):
     pd.Series(best_front_rrmses, name='rrmse').to_csv(f'../../analytic_fits/DIIID/best_front_rrmses_rplatidx{r_plateau_idx_val}.csv', index=False)
 
     plt.figure(r_plateau_idx_val)
-    plt.scatter(uz_df['R (m)'][rminidx:] - rmin, uz_df['J (MA / m^2)'][rminidx:], label='MAST Pre-ELM J_phi')
+    plt.scatter(uz_df['R (m)'][rminidx:] - rmin, uz_df['J (MA / m^2)'][rminidx:], label='DIIID Experimental Data')
+    # plt.legend()
     for i, wake_soln in enumerate(best_wake_solns):
         # if best_wake_rrmses[i] < 0.1 and best_wake_cbts[i] < 0.35 * rp_wake: # Threshold to avoid clutter
         if best_wake_rrmses[i] < 0.2: # Threshold to avoid clutter
-            plt.plot(r_wake, wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i], label=f'Wake fit {i+1}, n0 = {best_wake_n0s[i]:.4e}, RRMSE = {best_wake_rrmses[i]:.4f}')
+            # plt.plot(r_wake, wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i], label=f'Wake fit {i+1}, n0 = {best_wake_n0s[i]:.4e}, RRMSE = {best_wake_rrmses[i]:.4f}')
+            plt.plot(r_wake, wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i])
 
     for i, front_soln in enumerate(best_front_solns):
         if best_front_rrmses[i] < 0.2: # Threshold to avoid clutter
-            plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
+            # plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
+            plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i])
 
-    plt.title(f'Cubic vortex solutions to DIIID edge pedestal toroidal current density profile, $N_{{sweep}}$ = {N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
+    plt.title(f'Shear-flow stabilized solutions to DIIID edge pedestal toroidal current density plateau index = {r_plateau_idx_val} \n $N$ = {N_sweep * N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
     plt.xlabel('Radius (m)')
     plt.ylabel('$J_\\phi$ (MA/m$^2$)')
-
-
 
 # r_Jmax = uz_df['R (m)'][Jmaxidx] # R at maximum current density
 # Jzmax = uz_df['J (MA / m^2)'][Jmaxidx]
