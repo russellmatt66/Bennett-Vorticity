@@ -27,7 +27,7 @@ Tp_max = 700 * cnst.eV_to_K # Plasma temperature [K];
 n0_min = 1e19 # m^-3
 n0_max = 1e20 # m^-3
 
-N_sweep = 25 # Number of points in the sweep for both n0 and Tp
+N_sweep = 100 # Number of points in the sweep for both n0 and Tp
 n0_sweep = np.linspace(n0_min, n0_max, N_sweep) # Sweep over density
 Tp_sweep = np.linspace(Tp_min, Tp_max, N_sweep) # Sweep over temperature
 
