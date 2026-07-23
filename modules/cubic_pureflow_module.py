@@ -224,11 +224,11 @@ def p0(cbt: float, n0: float, uz0: float, rp: float) -> float:
     return outfront * (rp**4 - 10*rp**3*cbt + 3*rp**2*cbt**2 * P_0_II + 6*rp*cbt**3 * P_0_I + 6*cbt**4 * P_0_0)
 
 # IMPLEMENT
-def p0_negbulk() -> float:
-    pass 
+def p0_negbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float:
+    pass
 
 # IMPLEMENT
-def p0_posbulk() -> float:
+def p0_posbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float:
     pass
 
 def tauE(p0: float, uz0: float, rp: float, Tp: float, kappa_perp: float) -> float:
