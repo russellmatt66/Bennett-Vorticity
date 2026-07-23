@@ -202,18 +202,34 @@ def gradbtheta_chi2cubic_pure(cbt: float, uz0: float, n0: float, r: np.ndarray) 
     return -term1 * (term2 + term3) / (2 * r**2)
 
 # Miscellaneous
+# Pureflow pressure
 def p0(cbt: float, n0: float, uz0: float, rp: float) -> float:
     '''
     Core plasma pressure for cubic pureflow vortex
     Units: [Pa]
     '''
-    outfront = 0.25 * cnst.mu0 * (cnst.q_e * n0 * uz0)**2 / (rp + cbt)**2
+    if cbt <= 0.0 or rp <= 0.0:
+        raise ValueError("cbt and rp must be positive values.")
+
     P_0_II = (-13 + 2*np.log(cbt)**2 + 6*np.log(rp+cbt) + 2*np.log(rp + cbt)**2 
                 - 2*np.log(cbt) * (3 + 2*np.log(rp + cbt)))
+    
     P_0_I = (-5 + 2*np.log(cbt)**2 + 8*np.log(rp + cbt) + 2*np.log(rp + cbt)**2 
                 - 4*np.log(cbt) * (2 + np.log(rp + cbt)))
+    
     P_0_0 = np.log(cbt)**2 + np.log(rp + cbt)*(5 + np.log(rp + cbt)) - np.log(cbt)*(5 + 2*np.log(rp + cbt))
+
+    outfront = 0.25 * cnst.mu0 * (cnst.q_e * n0 * uz0)**2 / (rp + cbt)**2
+
     return outfront * (rp**4 - 10*rp**3*cbt + 3*rp**2*cbt**2 * P_0_II + 6*rp*cbt**3 * P_0_I + 6*cbt**4 * P_0_0)
+
+# IMPLEMENT
+def p0_negbulk() -> float:
+    pass 
+
+# IMPLEMENT
+def p0_posbulk() -> float:
+    pass
 
 def tauE(p0: float, uz0: float, rp: float, Tp: float, kappa_perp: float) -> float:
     '''
