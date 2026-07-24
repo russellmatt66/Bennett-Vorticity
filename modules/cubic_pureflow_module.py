@@ -227,9 +227,9 @@ def p0(cbt: float, n0: float, uz0: float, rp: float) -> float:
 
 def p0_negbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float:
     # Calculate pressure squared and then take the square root to obtain the pressure
-    C1 = cnst.q_e * n0 * u0**2 * cnst.mu0 * 0.5
+    C1 = cnst.q_e**2 * n0**2 * u0**2 * cnst.mu0 * 0.5
     C2 = cnst.q_e**2 * n0**2 * uz0 * u0 * cnst.mu0 * 0.5
-    C3 = cnst.q_e * n0 * u0 * uz0 * cnst.mu0 * 0.5
+    C3 = cnst.q_e**2 * n0**2 * u0 * uz0 * cnst.mu0 * 0.5
 
     I4 = p0(cbt, n0, uz0, rp) # Core plasma pressure for cubic pureflow vortex
     I1 = C1 * rp**2 * 0.25
@@ -244,9 +244,9 @@ def p0_negbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float
 
 def p0_posbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float:
     # Calculate pressure squared and then take the square root to obtain the pressure
-    C1 = cnst.q_e * n0 * u0**2 * cnst.mu0 * 0.5
-    C2 = cnst.q_e**2 * n0**2 * uz0 * u0 * cnst.mu0 * 0.5
-    C3 = cnst.q_e * n0 * u0 * uz0 * cnst.mu0 * 0.5
+    C1 = cnst.q_e**2 * n0**2 * u0**2 * cnst.mu0 * 0.5
+    C2 = cnst.q_e**2 * n0**2 * uz0 * u0 * cnst.mu0 * 0.5 # Same as C3
+    C3 = cnst.q_e**2 * n0**2 * u0 * uz0 * cnst.mu0 * 0.5
 
     I4 = p0(cbt, n0, uz0, rp) # Core plasma pressure for cubic pureflow vortex
     I1 = C1 * rp**2 * 0.25

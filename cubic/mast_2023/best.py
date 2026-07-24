@@ -210,8 +210,8 @@ for i, front_soln in enumerate(best_front_solns):
     p0_front = cpfm.p0_negbulk(best_front_cbts[i], best_front_n0s[i], best_front_uz0s[i], u0_front, rp_front) # [Pa]
     best_front_p0s.append(p0_front)
 
-print(f"\nWake p0: mean = {np.mean(best_wake_p0s):.1f} Pa, median = {np.median(best_wake_p0s):.1f} Pa")
-print(f"Front p0: mean = {np.mean(best_front_p0s):.1f} Pa, median = {np.median(best_front_p0s):.1f} Pa")
+print(f"\nWake p0: mean = {np.mean(best_wake_p0s):.1f} Pa, median = {np.median(best_wake_p0s):.1f} Pa, std = {np.std(best_wake_p0s):.1f} Pa")
+print(f"Front p0: mean = {np.mean(best_front_p0s):.1f} Pa, median = {np.median(best_front_p0s):.1f} Pa, std = {np.std(best_front_p0s):.1f} Pa")
 
 # pd.Series(best_wake_p0s, name='p0 [Pa]').to_csv('../../analytic_fits/mast_2023/best_wake_p0s.csv', index=False)
 # pd.Series(best_front_p0s, name='p0 [Pa]').to_csv('../../analytic_fits/mast_2023/best_front_p0s.csv', index=False)
