@@ -223,13 +223,39 @@ def p0(cbt: float, n0: float, uz0: float, rp: float) -> float:
 
     return outfront * (rp**4 - 10*rp**3*cbt + 3*rp**2*cbt**2 * P_0_II + 6*rp*cbt**3 * P_0_I + 6*cbt**4 * P_0_0)
 
-# IMPLEMENT
 def p0_negbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float:
-    pass
+    # Calculate pressure squared and then take the square root to obtain the pressure
+    C1 = cnst.q_e * n0 * u0**2 * cnst.mu0 * 0.5
+    C2 = cnst.q_e**2 * n0**2 * uz0 * u0 * cnst.mu0 * 0.5
+    C3 = cnst.q_e * n0 * u0 * uz0 * cnst.mu0 * 0.5
 
-# IMPLEMENT
+    I4 = p0(cbt, n0, uz0, rp) # Core plasma pressure for cubic pureflow vortex
+    I1 = C1 * rp**2 * 0.25
+    I3 = C3 * f(cbt, rp) / (rp + cbt) * 0.5
+
+    # I2 is complex
+    a = -cbt**2*np.pi**2 - 4*cbt*rp + rp**2 * 0.5 + 2*cbt**2*(1 + 3*np.log(cbt / rp))*np.log(cbt / (cbt + rp)) + 6*cbt**2*np.polylog(2, (cbt + rp) / cbt)
+    b = -6 * cbt**2 * np.pi * np.log(cbt / (cbt + rp))
+
+    p0sq_minus = I1**2 - 2*(I1*I3 + I1*I4 + I3*I4) + I3**2 - 2*C2*a*(I1+I4) + 2*C2*a*I3 + C2**2 * (a**2 + b**2)
+    return np.sqrt(p0sq_minus)
+
 def p0_posbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float:
-    pass
+    # Calculate pressure squared and then take the square root to obtain the pressure
+    C1 = cnst.q_e * n0 * u0**2 * cnst.mu0 * 0.5
+    C2 = cnst.q_e**2 * n0**2 * uz0 * u0 * cnst.mu0 * 0.5
+    C3 = cnst.q_e * n0 * u0 * uz0 * cnst.mu0 * 0.5
+
+    I4 = p0(cbt, n0, uz0, rp) # Core plasma pressure for cubic pureflow vortex
+    I1 = C1 * rp**2 * 0.25
+    I3 = C3 * f(cbt, rp) / (rp + cbt) * 0.5
+
+    # I2 is complex
+    a = -cbt**2*np.pi**2 - 4*cbt*rp + rp**2 * 0.5 + 2*cbt**2*(1 + 3*np.log(cbt / rp))*np.log(cbt / (cbt + rp)) + 6*cbt**2*np.polylog(2, (cbt + rp) / cbt)
+    b = -6 * cbt**2 * np.pi * np.log(cbt / (cbt + rp))
+
+    p0sq_plus = I1**2 + 2*(I1*I3 + I1*I4 + I3*I4) + I3**2 + 2*C2*a*(I1+I4) + 2*C2*a*I3 + C2**2 * (a**2 + b**2)
+    return np.sqrt(p0sq_plus)
 
 def tauE(p0: float, uz0: float, rp: float, Tp: float, kappa_perp: float) -> float:
     '''
