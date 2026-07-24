@@ -53,6 +53,7 @@ r_front_calc = np.linspace(0.0, rp_front, num_r) # Radial positions for calculat
 all_wake_solns = []
 all_wake_cbts = []
 all_wake_uz0 = []
+all_wake_Tps = []
 for ns in range(N_sweep):
     for ts in range(N_sweep):
         n0 = n0_sweep[ns]
@@ -74,11 +75,13 @@ for ns in range(N_sweep):
         all_wake_solns.append(wake_solns)
         all_wake_cbts.append(wake_cbts)
         all_wake_uz0.append([np.abs(uz0_root) for uz0_root in uz0_roots]) # Just pick up complex roots for uniformity
+        all_wake_Tps.append(Tp)
 
 # Front solve
 all_front_solns = []
 all_front_cbts = []
 all_front_uz0 = []
+all_front_Tps = []
 for ns in range(N_sweep):
     for ts in range(N_sweep):
         n0 = n0_sweep[ns]
@@ -98,6 +101,7 @@ for ns in range(N_sweep):
         all_front_solns.append(front_solns)
         all_front_cbts.append(front_cbts)
         all_front_uz0.append([np.abs(uz0_root) for uz0_root in uz0_roots])
+        all_front_Tps.append(Tp)
 
 # Accumulate the naturally best solutions
 best_wake_solns = []
@@ -115,6 +119,9 @@ best_front_rrmses = []
 best_wake_n0s = [] # Stale density bug occurs downstream from existence of double complex conjugate pairs 
 best_front_n0s = []
 
+best_wake_Tps = []
+best_front_Tps = []
+
 for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
     n0 = n0_sweep[nss // N_sweep]
     uz_wake = uz_df['J_phi (MA / m^2)'][rminidx:Jmaxidx] / (cnst.q_e * n0) * 1e6 # Convert J to uz for wake region
@@ -123,6 +130,7 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
     best_wake_soln = None
     best_wake_cbt = None
     best_wake_uz0 = None
+    best_wake_Tp = None
     for iw, wake_soln in enumerate(wake_solns_temp):
         uz_soln_interp = np.interp(uz_df['Radius (m)'][rminidx:Jmaxidx] - rmin, r_wake, wake_soln) # Interpolate fit to data points
         rmse = np.sqrt(mean_squared_error(uz_wake, uz_soln_interp))
@@ -132,11 +140,13 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
             best_wake_soln = wake_soln
             best_wake_cbt = all_wake_cbts[nss][iw]
             best_wake_uz0 = all_wake_uz0[nss][iw]
+            best_wake_Tp = all_wake_Tps[nss]
     if best_wake_soln is None: # No valid solution found, skip
         continue # Causes stale density bug if double complex conjugate pairs are found
     best_wake_solns.append(best_wake_soln)
     best_wake_cbts.append(best_wake_cbt)
     best_wake_uz0s.append(best_wake_uz0)
+    best_wake_Tps.append(best_wake_Tp)
     best_wake_rrmses.append(rrmse_min)
     best_wake_n0s.append(n0) # To stop the stale density bug 
 
@@ -148,6 +158,7 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
     best_front_soln = None
     best_front_cbt = None
     best_front_uz0 = None
+    best_front_Tp = None
     for ifr, front_soln in enumerate(front_solns_temp):
         uz_soln_interp = np.interp(uz_df['Radius (m)'][Jmaxidx:rmaxidx] - rmin, r_front, front_soln) # Interpolate fit to data points
         rmse = np.sqrt(mean_squared_error(uz_front, uz_soln_interp))
@@ -157,11 +168,13 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
             best_front_soln = front_soln
             best_front_cbt = all_front_cbts[nss][ifr]
             best_front_uz0 = all_front_uz0[nss][ifr]
+            best_front_Tp = all_front_Tps[nss]
     if best_front_soln is None: # No valid solution found, skip
         continue
     best_front_solns.append(best_front_soln)
     best_front_cbts.append(best_front_cbt)
     best_front_uz0s.append(best_front_uz0)
+    best_front_Tps.append(best_front_Tp)
     best_front_rrmses.append(rrmse_min)
     best_front_n0s.append(n0) # To stop the stale density bug if it occurs for the front. Doesn't seem to here though bc no double complex conjugate pairs
 
@@ -187,19 +200,46 @@ print(f"rp: {rp_wake:.3e} m")
 # NEED TO INCORPORATE BULK-FLOW PRESSURE 
 best_wake_p0s = []
 for i, wake_soln in enumerate(best_wake_solns):
-    p0 = cpfm.p0(best_wake_cbts[i], best_wake_n0s[i], best_wake_uz0s[i], rp_wake) # [Pa]
-    best_wake_p0s.append(p0)
+    # p0 = cpfm.p0(best_wake_cbts[i], best_wake_n0s[i], best_wake_uz0s[i], rp_wake) # [Pa]
+    p0_wake = cpfm.p0_posbulk(best_wake_cbts[i], best_wake_n0s[i], best_wake_uz0s[i], u0_wake, rp_wake) # [Pa]
+    best_wake_p0s.append(p0_wake)
 
 best_front_p0s = []
 for i, front_soln in enumerate(best_front_solns):
-    p0 = cpfm.p0(best_front_cbts[i], best_front_n0s[i], best_front_uz0s[i], rp_front) # [Pa]
-    best_front_p0s.append(p0)
+    # p0 = cpfm.p0(best_front_cbts[i], best_front_n0s[i], best_front_uz0s[i], rp_front) # [Pa]
+    p0_front = cpfm.p0_negbulk(best_front_cbts[i], best_front_n0s[i], best_front_uz0s[i], u0_front, rp_front) # [Pa]
+    best_front_p0s.append(p0_front)
 
 print(f"\nWake p0: mean = {np.mean(best_wake_p0s):.1f} Pa, median = {np.median(best_wake_p0s):.1f} Pa")
 print(f"Front p0: mean = {np.mean(best_front_p0s):.1f} Pa, median = {np.median(best_front_p0s):.1f} Pa")
 
-pd.Series(best_wake_p0s, name='p0 [Pa]').to_csv('../../analytic_fits/mast_2023/best_wake_p0s.csv', index=False)
-pd.Series(best_front_p0s, name='p0 [Pa]').to_csv('../../analytic_fits/mast_2023/best_front_p0s.csv', index=False)
+# pd.Series(best_wake_p0s, name='p0 [Pa]').to_csv('../../analytic_fits/mast_2023/best_wake_p0s.csv', index=False)
+# pd.Series(best_front_p0s, name='p0 [Pa]').to_csv('../../analytic_fits/mast_2023/best_front_p0s.csv', index=False)
+
+# ADD PINCH RADIUS, EDGE TEMPERATURE, DENSITY, FLOW ROOT CONSTANT, AND ACCURACY
+df_wake = pd.DataFrame({
+    'p0 [Pa]': best_wake_p0s,
+    'cbt [m]': best_wake_cbts,
+    'n0 [m^-3]': best_wake_n0s,
+    'uz0 [m/s]': best_wake_uz0s,
+    'u0 [m/s]': [u0_wake] * len(best_wake_p0s),
+    'rp [m]': [rp_wake] * len(best_wake_p0s),
+    'Tp [K]': best_wake_Tps,
+    'rrmse': best_wake_rrmses
+})
+df_wake.to_csv('../../analytic_fits/mast_2023/best_wake_p0s.csv', index=False)
+
+df_front = pd.DataFrame({
+    'p0 [Pa]': best_front_p0s,
+    'cbt [m]': best_front_cbts,
+    'n0 [m^-3]': best_front_n0s,
+    'uz0 [m/s]': best_front_uz0s,
+    'u0 [m/s]': [u0_front] * len(best_front_p0s),
+    'rp [m]': [rp_front] * len(best_front_p0s),
+    'Tp [K]': best_front_Tps,
+    'rrmse': best_front_rrmses
+})
+df_front.to_csv('../../analytic_fits/mast_2023/best_front_p0s.csv', index=False)
 
 # Create band plots showing the range over which these best solutions vary next to the experimental data
 plt.figure()

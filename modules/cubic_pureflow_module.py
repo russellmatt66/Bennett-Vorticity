@@ -3,6 +3,8 @@ import numpy as np
 from . import constants as cnst
 from . import spitzer as spz
 
+from mpmath import polylog
+
 '''
 Calculating objects for pureflow (\chi = 2) cubic vortices
 '''
@@ -234,7 +236,7 @@ def p0_negbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float
     I3 = C3 * f(cbt, rp) / (rp + cbt) * 0.5
 
     # I2 is complex
-    a = -cbt**2*np.pi**2 - 4*cbt*rp + rp**2 * 0.5 + 2*cbt**2*(1 + 3*np.log(cbt / rp))*np.log(cbt / (cbt + rp)) + 6*cbt**2*np.polylog(2, (cbt + rp) / cbt)
+    a = -cbt**2*np.pi**2 - 4*cbt*rp + rp**2 * 0.5 + 2*cbt**2*(1 + 3*np.log(cbt / rp))*np.log(cbt / (cbt + rp)) + 6*cbt**2*float(polylog(2, (cbt + rp) / cbt).real)
     b = -6 * cbt**2 * np.pi * np.log(cbt / (cbt + rp))
 
     p0sq_minus = I1**2 - 2*(I1*I3 + I1*I4 + I3*I4) + I3**2 - 2*C2*a*(I1+I4) + 2*C2*a*I3 + C2**2 * (a**2 + b**2)
@@ -251,7 +253,7 @@ def p0_posbulk(cbt: float, n0: float, uz0: float, u0: float, rp: float) -> float
     I3 = C3 * f(cbt, rp) / (rp + cbt) * 0.5
 
     # I2 is complex
-    a = -cbt**2*np.pi**2 - 4*cbt*rp + rp**2 * 0.5 + 2*cbt**2*(1 + 3*np.log(cbt / rp))*np.log(cbt / (cbt + rp)) + 6*cbt**2*np.polylog(2, (cbt + rp) / cbt)
+    a = -cbt**2*np.pi**2 - 4*cbt*rp + rp**2 * 0.5 + 2*cbt**2*(1 + 3*np.log(cbt / rp))*np.log(cbt / (cbt + rp)) + 6*cbt**2*float(polylog(2, (cbt + rp) / cbt).real)
     b = -6 * cbt**2 * np.pi * np.log(cbt / (cbt + rp))
 
     p0sq_plus = I1**2 + 2*(I1*I3 + I1*I4 + I3*I4) + I3**2 + 2*C2*a*(I1+I4) + 2*C2*a*I3 + C2**2 * (a**2 + b**2)
