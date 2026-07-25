@@ -22,7 +22,7 @@ Tp_max = 300 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 200 - 300 eV
 n0_min = 1e19 # m^-3
 n0_max = 1e20 # m^-3
 
-N_sweep = 25
+N_sweep = 25 # Number of points to sweep over for both density and temperature
 n0_sweep = np.linspace(n0_min, n0_max, N_sweep) # Sweep over density
 Tp_sweep = np.linspace(Tp_min, Tp_max, N_sweep) # Sweep over temperature
 
@@ -243,21 +243,44 @@ df_front.to_csv('../../analytic_fits/mast_2023/best_front_p0s.csv', index=False)
 
 # Create band plots showing the range over which these best solutions vary next to the experimental data
 plt.figure()
-plt.scatter(uz_df['Radius (m)'][rminidx:] - rmin, uz_df['J_phi (MA / m^2)'][rminidx:], label='MAST Pre-ELM J_phi')
+start_loc = rminidx
+mincuridx_offset = -1 # MANUAL SWITCH TO ELIMINATE ERRONEOUS POINTS BEYOND THE MIN CURRENT BDRY CHOSEN
+roffset = rmin
+
+if roffset is None:
+    plt.scatter(uz_df['Radius (m)'][start_loc - mincuridx_offset:] - roffset, uz_df['J_phi (MA / m^2)'][start_loc - mincuridx_offset:], label='MAST Pre-ELM J_phi')
+else: 
+    plt.scatter(uz_df['Radius (m)'][start_loc - mincuridx_offset:], uz_df['J_phi (MA / m^2)'][start_loc - mincuridx_offset:], label='MAST Pre-ELM J_phi')
+
+plt.legend()
+
 for i, wake_soln in enumerate(best_wake_solns):
     # if best_wake_rrmses[i] < 0.1 and best_wake_cbts[i] < 0.35 * rp_wake: # Threshold to avoid clutter
     if best_wake_rrmses[i] < 0.1: # Threshold to avoid clutter
-        plt.plot(r_wake, wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i], label=f'Wake fit {i+1}, n0 = {best_wake_n0s[i]:.4e}, RRMSE = {best_wake_rrmses[i]:.4f}')
+        if roffset is None: 
+            # plt.plot(r_wake , wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i], label=f'Wake fit {i+1}, n0 = {best_wake_n0s[i]:.4e}, RRMSE = {best_wake_rrmses[i]:.4f}')
+            plt.plot(r_wake , wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i])
+        else: 
+            # plt.plot(r_wake + roffset, wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i], label=f'Wake fit {i+1}, n0 = {best_wake_n0s[i]:.4e}, RRMSE = {best_wake_rrmses[i]:.4f}')
+            plt.plot(r_wake + roffset, wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i])
+
+# plt.plot([], [], label='Accurate Wake Solutions')
 
 for i, front_soln in enumerate(best_front_solns):
     if best_front_rrmses[i] < 0.2: # Threshold to avoid clutter
-        plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
+        if roffset is None: 
+            # plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
+            plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i])
+        else: 
+            # plt.plot(r_front + roffset, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
+            plt.plot(r_front + roffset, front_soln / 1e6 * cnst.q_e * best_front_n0s[i])
 
-plt.title(f'Cubic vortex solutions to MAST pre-ELM toroidal current density profile, $N_{{sweep}}$ = {N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
+# plt.plot([], [], label='Accurate Front Solutions')
+plt.title(f'Cubic vortex solutions to MAST pre-ELM toroidal current density profile, $N_\mathrm{{sweep}} = {N_sweep}$, $N_\mathrm{{sweep}}^2$ = {N_sweep*N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
 plt.xlabel('Radius (m)')
 plt.ylabel('$J_\\phi$ (MA/m$^2$)')
-# plt.legend()
-
+plt.legend()
+# 
 # plt.fill_between(r_wake, wake_lo, wake_hi, alpha=0.3, label='Wake band')
 # plt.fill_between(r_front, front_lo, front_hi, alpha=0.3, label='Front band')
 # plt.legend()
