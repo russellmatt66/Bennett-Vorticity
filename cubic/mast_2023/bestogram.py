@@ -44,20 +44,25 @@ print(f'Min RRMSE for best front solutions: {bfr_min:.4f}')
 all_vals = np.concatenate([bwr_rrmses, bfr_rrmses])
 bins = np.linspace(all_vals.min(), all_vals.max(), 21)  # 20 bins
 
-N_sweep = bwr_rrmses.size # Both arrays come from same sweep
+threshold = 0.1
+
+Num_best_wake = bwr_rrmses[bwr_rrmses < threshold] # 
+Num_best_front = bfr_rrmses[bfr_rrmses < threshold]
+print(f'Number of sufficiently accurate wake solutions = {Num_best_wake.size}')
+print(f'Number of accurate front solutions = {Num_best_front.size}')
 
 fig, ax = plt.subplots(1, 2, figsize = (10, 4), sharey=True)
 
 ax[0].hist(bwr_rrmses, bins=bins, alpha=0.5)
-ax[0].set_xlabel('Range-Normalized Relative Root Mean Squared Error (RRMSE)')
-ax[0].set_ylabel('Frequency')
-ax[0].set_title(f'Histogram of RRMSE for Best Wake Solutions to MAST 2023 Edge Pedestal, N={N_sweep}')
+ax[0].set_xlabel('Range-Normalized Relative Root Mean Squared Error (RRMSE)', fontsize=18)
+ax[0].set_ylabel('Frequency', fontsize=18)
+ax[0].set_title(f'Histogram of RRMSE for Best Wake Solutions to MAST 2023 Edge Pedestal, N={Num_best_wake.size}', fontsize=12)
 ax[0].legend()
 
 ax[1].hist(bfr_rrmses, bins=bins, alpha=0.5)
-ax[1].set_xlabel('Range-Normalized Relative Root Mean Squared Error (RRMSE)')
-ax[1].set_ylabel('Frequency')
-ax[1].set_title(f'Histogram of RRMSE for Best Front Solutions to MAST 2023 Edge Pedestal Sweep, N={N_sweep}')
+ax[1].set_xlabel('Range-Normalized Relative Root Mean Squared Error (RRMSE)', fontsize=18)
+ax[1].set_ylabel('Frequency', fontsize=18)
+ax[1].set_title(f'Histogram of RRMSE for Best Front Solutions to MAST 2023 Edge Pedestal Sweep, N={Num_best_front.size}', fontsize=12)
 ax[1].legend()
 
 tick_edges = bins[::2]  # every 2nd edge so labels are readable
