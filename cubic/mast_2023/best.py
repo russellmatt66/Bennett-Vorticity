@@ -33,11 +33,13 @@ uz_df.sort_values(by='Radius (m)', inplace=True)
 rminidx = uz_df['J_phi (MA / m^2)'][:uz_df['J_phi (MA / m^2)'].idxmax()].idxmin() # Index of minimum current density before max
 rmin = uz_df['Radius (m)'][rminidx] # Radius at minimum current density
 
-rmax = uz_df['Radius (m)'].max() # Maximum radius
+# rmaxidx = uz_df['Radius (m)'].idxmax() - 1 # Index of maximum radius
+# rmax = uz_df['Radius (m)'].iloc[rmaxidx - 1] # Maximum radius "-1" is to select point to the left.
 rmaxidx = uz_df['Radius (m)'].idxmax() # Index of maximum radius
+rmax = uz_df['Radius (m)'].max() 
 
 Jmaxidx = uz_df['J_phi (MA / m^2)'].idxmax() # Index of maximum current density
-r_Jmax = uz_df['Radius (m)'][Jmaxidx] # R at maximum current density
+r_Jmax = uz_df['Radius (m)'][Jmaxidx] # R at maximum current density. 
 Jzmax = uz_df['J_phi (MA / m^2)'][Jmaxidx]
 
 num_r = 10000
@@ -248,7 +250,8 @@ mincuridx_offset = -1 # MANUAL SWITCH TO ELIMINATE ERRONEOUS POINTS BEYOND THE M
 roffset = rmin
 
 if roffset is None:
-    plt.scatter(uz_df['Radius (m)'][start_loc - mincuridx_offset:] - roffset, uz_df['J_phi (MA / m^2)'][start_loc - mincuridx_offset:], label='MAST Pre-ELM J_phi')
+    # Avoid first point it's too far away
+    plt.scatter(uz_df['Radius (m)'][1 + start_loc - mincuridx_offset:] - roffset, uz_df['J_phi (MA / m^2)'][start_loc - mincuridx_offset:], label='MAST Pre-ELM J_phi')
 else: 
     plt.scatter(uz_df['Radius (m)'][start_loc - mincuridx_offset:], uz_df['J_phi (MA / m^2)'][start_loc - mincuridx_offset:], label='MAST Pre-ELM J_phi')
 
@@ -267,7 +270,7 @@ for i, wake_soln in enumerate(best_wake_solns):
 # plt.plot([], [], label='Accurate Wake Solutions')
 
 for i, front_soln in enumerate(best_front_solns):
-    if best_front_rrmses[i] < 0.2: # Threshold to avoid clutter
+    if best_front_rrmses[i] < 0.1: # Threshold to avoid clutter
         if roffset is None: 
             # plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
             plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i])
@@ -276,10 +279,11 @@ for i, front_soln in enumerate(best_front_solns):
             plt.plot(r_front + roffset, front_soln / 1e6 * cnst.q_e * best_front_n0s[i])
 
 # plt.plot([], [], label='Accurate Front Solutions')
-plt.title(f'Cubic vortex solutions to MAST pre-ELM toroidal current density profile, $N_\mathrm{{sweep}} = {N_sweep}$, $N_\mathrm{{sweep}}^2$ = {N_sweep*N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
-plt.xlabel('Radius (m)')
-plt.ylabel('$J_\\phi$ (MA/m$^2$)')
-plt.legend()
+# plt.title(f'Cubic vortex solutions to MAST pre-ELM toroidal current density profile, $N_\mathrm{{sweep}} = {N_sweep}$, $N_\mathrm{{sweep}}^2$ = {N_sweep*N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
+plt.title(f'Cubic vortex solutions to MAST pre-ELM toroidal current density sweep', fontsize=24)
+plt.xlabel('Radius (m)', fontsize=24)
+plt.ylabel('$J_\\phi$ (MA/m$^2$)', fontsize=24)
+plt.legend(fontsize=18)
 # 
 # plt.fill_between(r_wake, wake_lo, wake_hi, alpha=0.3, label='Wake band')
 # plt.fill_between(r_front, front_lo, front_hi, alpha=0.3, label='Front band')
