@@ -186,8 +186,8 @@ def plot_vortex_chain(nfig: int, uz_df: pd.DataFrame, uz_fits: list[list[np.ndar
                 plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'], 'b--', label='Experimental data')
             plt.plot(r_arrays[i] * 1e3, uz_fits[i][j] / 1e3, label=f'Root {j+1}, uz0 = {uz0_allroots[i][j]:.3e} m/s, cbt = {cbts[i][j]:.3e} m')
             plt.title(f'Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {t(float(uz_df["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
-            plt.xlabel('Radius (mm)')
-            plt.ylabel('Axial Velocity (km/s)')
+            plt.xlabel('Radius (mm)', fontsize=24)
+            plt.ylabel('Axial Velocity (km/s)', fontsize=24)
             plt.legend()
 
 def save_vortex_chain(uz_fits: list[list[np.ndarray]], r_arrays: list[np.ndarray], cbts: list[list[float]], uz0_allroots: list[list[complex]], filename: str) -> None:
@@ -273,27 +273,29 @@ print(f'Average RRMSE across all segments for each root: {rrmse_avgs}')
 
 # PLOT
 plt.figure()
-plt.plot(uz_tau_0pt56['r (mm)'], uz_tau_0pt56['uz (km/s)'], 'b--', label='Experimental data')
+# plt.plot(uz_tau_0pt16['r (mm)'], uz_tau_0pt16['uz (km/s)'], 'b--', label='Experimental data')
 
-colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+# colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-for i in range(len(swtc_uz_0pt56)):
-    for j in range(len(swtc_uz_0pt56[i])):
-        color = colors [j % len(colors)]
-        label = f'Root {j+1}' if i == 0 else "_nolegend_" # avoid duplicate legend entries
-        plt.plot(r_0pt56[i] * 1e3, swtc_uz_0pt56[i][j] / 1e3, color = color, label=label)
+# for i in range(len(swtc_uz_0pt16)):
+#     for j in range(len(swtc_uz_0pt16[i])):
+#         if j != 2: continue
+#         color = colors [j % len(colors)]
+#         label = f'Root {j+1}' if i == 0 else "_nolegend_" # avoid duplicate legend entries
+#         plt.plot(r_0pt16[i] * 1e3, swtc_uz_0pt16[i][j] / 1e3, color = color, label=label)
 
-plt.title(f'Reconstruction of Zap 2009 axial velocity, $\\tau$ = {t(float(uz_tau_0pt56["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
-plt.xlabel('Radius (mm)')
-plt.ylabel('Axial Velocity (km/s)')
-plt.legend()
+# plt.title(f'Reconstruction of Zap 2009 axial velocity, $\\tau$ = {t(float(uz_tau_0pt16["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
+# plt.xlabel('Radius (mm)', fontsize=20)
+# plt.ylabel('Axial Velocity (km/s)', fontsize=20)
+# plt.legend()
 
+# Comment this OUT if you don't want to plot everything
 # plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
 # nfig += len(swtc_uz_neg0pt10[0]) # Cubic, chi=2 vortices will all have four roots
 # plot_vortex_chain(nfig, uz_tau_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
 # nfig += len(swtc_uz_0pt10[0]) 
-# plot_vortex_chain(nfig, uz_tau_0pt16, swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16)
-# nfig += len(swtc_uz_0pt16[0])
+plot_vortex_chain(nfig, uz_tau_0pt16, swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16)
+nfig += len(swtc_uz_0pt16[0])
 # plot_vortex_chain(nfig, uz_tau_0pt34, swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34)
 # nfig += len(swtc_uz_0pt34[0])
 # plot_vortex_chain(nfig, uz_tau_0pt56, swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56)

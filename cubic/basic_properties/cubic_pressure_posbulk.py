@@ -26,12 +26,12 @@ uz0 = cpfm.root_solve_chi2_posbulk(u_edge, u0, n0, rp, Tp)
 C_list = []
 p0_list = []
 for uz0_root in uz0:
-    uz0_abs = abs(uz0_root)
+    uz0_abs = abs(uz0_root) # Speed profile means we can handle complex velocities
     C = cpfm.cbt(n0, uz0_abs, rp, Tp)
     print("uz0: ", uz0_root, "uz0_abs:", uz0_abs, "C:", C)
     p0 = cpfm.p0_posbulk(C, n0, uz0_abs, u0, rp)
     C_list.append(C)
     p0_list.append(p0)
 
-print("C_list:", C_list)
-print("p0_list:", p0_list)
+print("C_list [m]:", C_list)
+print("p0_list [Pa]:", p0_list)

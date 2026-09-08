@@ -111,7 +111,7 @@ Make fits of Bennett vortices to each half-chord
 """
 n0 = 1e22 # Plasma density [m^-3]; 1e22 - 1e23
 # rp = 10e-3 # Pinch radius [m];   
-T_FUDGE_FACTOR = 8
+T_FUDGE_FACTOR = 1
 Tp = 150 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV
 Tp *= T_FUDGE_FACTOR
 # uedge = 4e4 # Edge flow velocity [m/s]; 
