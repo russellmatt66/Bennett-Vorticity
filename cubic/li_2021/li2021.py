@@ -73,15 +73,15 @@ print(Iz_highres.head())
 
 # Plasma properties
 u0 = 0.75e6 # Core flow velocity [m/s]; mm / ns -> m/s
-n0 = 5e17 # Plasma density [m^-3]; 1e17 - 1e19
+n0 = 1e17 # Plasma density [m^-3]; 1e17 - 1e19
 
 u0_needletip = 0.375e6 # Core flow velocity for plasma at the needletip [m/s];
 n0_needletip = 1e19 # Plasma density for plasma at the needletip
 
 # Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti ~ 1 keV is just a guess
-Tp_front = 10000 # Li et al (2021) estimate for gas temperature is 300 [degK]: p12, S4.6
-Tp_wake = 100000 
-Tp_needletip = 100000 # needletip edge plasma temperature [degK]
+Tp_front = 2e3 # Li et al (2021) estimate for gas temperature is 300 [degK]: p12, S4.6
+Tp_wake = 2e4 
+Tp_needletip = 1e5 # needletip edge plasma temperature [degK]
 
 rp_front = 5e-3 # m
 rp_wake = 15e-3 # m 
@@ -92,6 +92,7 @@ Iz_wake = Iz[Iz['r (mm)'] > 50] * 1e-3 # Convert to meters
 
 I0 = Iz['Iz (A.U.)'].max() # Use the maximum intensity as a proxy for the core flow velocity
 alpha = I0 / (cnst.q_e * n0 * u0) # Proportionality constant to convert current density to intensity
+# alpha = I0 / (cnst.q_e * n0 * u0) * (cnst.me / (cnst.mair + cnst.me))# Proportionality constant to convert current density to intensity
 print(f'Proportionality constant alpha: {alpha}')
 
 uedge_front = Iz_highres[Iz_highres['r (mm)'] == Iz_highres['r (mm)'].min()]['Iz (A.U.)'].values[0] / (alpha * cnst.q_e * n0) # Convert to m/s
@@ -189,9 +190,9 @@ for j in range (len(uz_fits_wake)):
 for k in range (len(uz_fits_needletip)):
     plt.plot(-r_needletip * 1e3 + z0_needletip, alpha * cnst.q_e * n0 * uz_fits_needletip[k], label=f'Needletip Vortex {k+1}, $r_{{p}}$={rp_needletip*1e3:.0f} mm, $C_{{B,T}}$ = {cbts_needletip[k]:.2e} m')
 
-plt.xlabel('r (mm)')
-plt.ylabel('Intensity (A.U.)')
-plt.title(f'Vortex fits to Li et al. (2021) intensity, u0 = {u0:.2e} m/s, n0 = {n0} $m^{{-3}}$')
+plt.xlabel('r (mm)', fontsize=24)
+plt.ylabel('Intensity (A.U.)', fontsize=24)
+plt.title(f'Vortex fits to Li et al. (2021) intensity, u0 = {u0:.2e} m/s, n0 = {n0} $m^{{-3}}$', fontsize=24)
 plt.legend()
 
 # plt.figure()

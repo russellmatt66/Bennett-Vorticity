@@ -185,7 +185,7 @@ def plot_vortex_chain(nfig: int, uz_df: pd.DataFrame, uz_fits: list[list[np.ndar
                 # plt.scatter(uz_df['r (mm)'], uz_df['uz (km/s)'])
                 plt.plot(uz_df['r (mm)'], uz_df['uz (km/s)'], 'b--', label='Experimental data')
             plt.plot(r_arrays[i] * 1e3, uz_fits[i][j] / 1e3, label=f'Root {j+1}, uz0 = {uz0_allroots[i][j]:.3e} m/s, cbt = {cbts[i][j]:.3e} m')
-            plt.title(f'Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {t(float(uz_df["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV')
+            plt.title(f'Vortex Chain fit to Zap 2009 axial velocity, $\\tau$ = {t(float(uz_df["name"].iloc[0]))} $\mu s$, $n0 = {n0:.1e}$ m$^{{-3}}$, $T_p = {Tp/cnst.eV_to_K:.1f}$ eV', fontsize=24)
             plt.xlabel('Radius (mm)', fontsize=24)
             plt.ylabel('Axial Velocity (km/s)', fontsize=24)
             plt.legend()
