@@ -15,7 +15,7 @@ def cbt(n0: float, uz0: float, rp: float, Tp: float) -> float:
     Units: [m]
     '''
     coeff1 = cnst.mu0 * cnst.q_e**2 / (16 * cnst.kB)
-    coeff2 = (n0 * uz0**2 * rp**3) / Tp
+    coeff2 = (n0 * (np.real(uz0)**2 + np.imag(uz0)**2)) * rp**3 / Tp
     return coeff1 * coeff2
 
 """ 
