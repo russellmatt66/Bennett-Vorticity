@@ -14,9 +14,9 @@ Plot the normalized azimuthal magnetic field profile of an r^3 Bennett Vortex.
 Why does this file not use the library? 
 Because it's copied from here: https://github.com/russellmatt66/imhd-CUDA/blob/main/python/bennett-vorticity/temp-rcubed/temp-rcubed_btheta.py
 '''
-rp = 10^6  # [m]
+rp = 10**6  # [m]
 n0 = 1e12 # [m^{-3}]
-Tp = 10 * cnst.eV_to_K # [K]
+Tp = 10 * cnst.eV_to_K # [eV]
 
 
 uedge = 1.25e6 # m/s
