@@ -14,7 +14,7 @@ n0 = 10**6 # [m^-3]
 rB = 10**3 # [m]
 TpB = 10**(-1) * cnst.eV_to_K # [eV] -> [K]
 
-u_edgeB = 1e3 # [m/s]
+u_edgeB = 1.505e3 # [m/s]
 
 uz0B = cpfm.root_solve_chi2_pure(u_edgeB, n0, rB, TpB)
 CB_list = []
@@ -26,7 +26,7 @@ print(f"CB_list = {CB_list} [m]")
 rp = 1 # [m]
 Tp = 10**(1) * cnst.eV_to_K # [eV] -> [K]
 
-u_edge = 1e6 # [m/s]
+u_edge = 2.505e6 # [m/s]
 
 uz0 = cpfm.root_solve_chi2_pure(u_edge, n0, rp, Tp)
 C_list = []
