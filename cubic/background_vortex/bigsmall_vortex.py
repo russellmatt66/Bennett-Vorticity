@@ -49,3 +49,11 @@ for i in range(len(CB_list)):
 print(f"phi_B = {phi_B}")
 print(f"phi_C = {phi_C}")
 print(f"Lambda_list = {Lambda_list}")
+
+for i in range(len(C_list)): 
+    btheta = cpfm.btheta_chi2(C_list[i], uz0[i], n0, rp)
+    btheta_CB = cpfm.btheta_chi2(CB_list[i], uz0B[i], n0, rp)
+    print(f"btheta(rp) for uz0_root = {uz0[i]} is {btheta}")
+    print(f"btheta(rp) for uz0B_root = {uz0B[i]} is {btheta_CB}")
+    answer = btheta + btheta_CB
+    print(f"Sum of btheta(rp) for uz0_root = {uz0[i]} and uz0B_root = {uz0B[i]} is {answer}")    

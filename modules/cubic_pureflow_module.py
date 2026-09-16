@@ -165,12 +165,12 @@ def btheta_chi2(cbt: float, uz0: float, n0: float, r: np.ndarray) -> np.ndarray:
     '''
     Magnetic field profile btheta(r) for cubic pureflow vortex
     Units: [T]
-    B_{theta}^{(2)}(r) = -mu0 * e * uz0 * n0 * f(cbt, r) / (2 * r * (r + cbt))
+    B_{theta}^{(2)}(r) = mu0 * e * uz0 * n0 * f(cbt, r) / (2 * r * (r + cbt))
                     = \frac{mu0}{r} * \int_0^r' r' * J_z^{(2)}(r') dr' 
     '''
-    term1 = cnst.mu0 * cnst.q_e * uz0 * n0
+    term1 = cnst.mu0 * cnst.q_e * np.abs(uz0) * n0
     term2 = f(cbt, r) / (2.0 * r * (r + cbt))
-    return -term1 * term2
+    return term1 * term2
 
 def btheta_chi2_negbulk(cbt: float, uz0: float, u0: float, n0: float, r: np.ndarray) -> np.ndarray:
     '''

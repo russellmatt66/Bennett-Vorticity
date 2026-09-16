@@ -46,6 +46,16 @@ def omega_pe(n: float) -> float:
     '''
     return np.sqrt(n * cnst.q_e**2 / (cnst.eps0 * cnst.me))
 
+def omega_pi(n: float, Z: float, m: float) -> float:
+    '''
+    Ion plasma frequency
+    Units: [rad/s]
+    o n - Plasma density (m^-3)
+    o Z - Ionization state
+    o m - Mass of the ion (kg)
+    '''
+    return np.sqrt(n * (Z * cnst.q_e)**2 / (cnst.eps0 * m))
+
 def nu_ei(n: float, T: float, ln_Lambda: float) -> float:
     '''
     Electron-ion collision frequency

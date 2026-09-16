@@ -85,9 +85,10 @@ def coulombLog_ee(n0: float, Tp: float) -> float:
     Coulomb logarithm
     Units: dimensionless
     o n0 - Edge plasma density (m^-3)
-    o Tp - Edge plasma temperature (K)
+    o Tp - Edge plasma temperature (eV)
     '''
-    if Tp * cnst.K_to_eV < 10:
+    Tp = Tp * cnst.K_to_eV 
+    if Tp < 10:
         return 23 - np.log(n0**0.5 * Tp**-1.5)
     else:
         return 24 - np.log(n0**0.5 * Tp**-1)
@@ -97,10 +98,11 @@ def coulombLog_ei(n0: float, Tp: float, Z: float) -> float:
     Coulomb logarithm
     Units: dimensionless
     o n0 - Edge plasma density (m^-3)
-    o Tp - Edge plasma temperature (K)
+    o Tp - Edge plasma temperature (eV)
     o Z - Ionization state
     '''
-    if Tp * cnst.K_to_eV < 10 * Z**2:
+    Tp = Tp * cnst.K_to_eV 
+    if Tp < 10 * Z**2:
         return 23 - np.log(n0**0.5 * Tp**-1.5) + np.log(Z)
     else:
         return 24 - np.log(n0**0.5 * Tp**-1)
