@@ -85,7 +85,7 @@ def coulombLog_ee(n0: float, Tp: float) -> float:
     Coulomb logarithm
     Units: dimensionless
     o n0 - Edge plasma density (m^-3)
-    o Tp - Edge plasma temperature (eV)
+    o Tp - Edge plasma temperature (K)
     '''
     Tp = Tp * cnst.K_to_eV 
     if Tp < 10:

@@ -66,8 +66,10 @@ for uz0p, uz0n in zip(uz0_pos, uz0_neg):
     uzpos_fits.append(uzpos_fit)
     uzneg_fits.append(uzneg_fit)
 
-    plotlen_pos = len(uzpos_fit) - 1
-    plotlen_neg_offset = 2
+    # plotlen_pos = len(uzpos_fit) - 1
+    plotlen_pos = len(uzpos_fit)
+    # plotlen_neg_offset = 2
+    plotlen_neg_offset = 0
     plt.plot(rpos[:plotlen_pos] * 1e3, uzpos_fit[:plotlen_pos] / 1e3, 'bo', label='Bulk, $\chi=2$, positive cubic vortex')
     plt.plot(rneg[plotlen_neg_offset:] * 1e3, uzneg_fit[plotlen_neg_offset:] / 1e3, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
     plt.plot(r_data * 1e3, uz_data / 1e3, 'kx', label='Zap 2001 Axial Velocity Data')
@@ -110,12 +112,17 @@ print(f'RRMSEneg = {RRMSEneg}')
 
 # Calculate plasma properties
 for uz0p, uz0n in zip(uz0_pos, uz0_neg):
+    print(f"uz0p = {uz0p}, uz0n = {uz0n}")
     cbt_pos = cpfm.cbt(n0, np.abs(uz0p), rp, Tp) # Vortex constant [m]
     cbt_neg = cpfm.cbt(n0, np.abs(uz0n), rp, Tp) # Vortex constant [m]
-#     p0 = cpfm.p0(cbt_temp, n0, np.abs(uz0p), rp) # Core plasma pressure [Pa]
-#     Bmax = np.abs(cpfm.btheta_chi2_negbulk(cbt_temp, np.abs(uz0p), u0, n0, rp)) # Edge magnetic field [T]
-#     tauE = cpfm.tauE(p0, np.abs(uz0p), rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
-#     tauA = rp / pp.vA(Bmax, n0) # Alfvén time [s]
+    p0_pos = cpfm.p0_posbulk(cbt_pos, n0, np.abs(uz0p), u0, rp) # Core plasma pressure [Pa]
+    p0_neg = cpfm.p0_negbulk(cbt_neg, n0, np.abs(uz0n), u0, rp) # Core plasma pressure [Pa]
+    Bmax_pos = np.abs(cpfm.btheta_chi2_negbulk(cbt_pos, np.abs(uz0p), u0, n0, rp)) # Edge magnetic field [T]
+    Bmax_neg = np.abs(cpfm.btheta_chi2_negbulk(cbt_neg, np.abs(uz0n), u0, n0, rp)) # Edge magnetic field [T]
+    tauE_pos = cpfm.tauE(p0_pos, np.abs(uz0p), rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax_pos), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
+    tauE_neg = cpfm.tauE(p0_neg, np.abs(uz0n), rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax_neg), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
+    tauA_pos = rp / pp.vA(Bmax_pos, n0) # Alfvén time [s]
+    tauA_neg = rp / pp.vA(Bmax_neg, n0) # Alfvén time [s]
 #     # peak_shear = cpfm.peakshear_chi2cubic()
     peak_shear_pos = (8.0 / 27.0) * np.abs(uz0p) / cbt_pos 
     peak_shear_neg = (8.0 / 27.0) * np.abs(uz0n) / cbt_neg 
@@ -126,7 +133,15 @@ for uz0p, uz0n in zip(uz0_pos, uz0_neg):
 #     print(f'  tauE = {tauE} s')
 #     print(f'  tauA = {tauA} s')
 #     print(f'  tauE / tauA = {tauE / tauA}')
+    print(f'  tauE (positive) = {tauE_pos} s')
+    print(f'  tauE (negative) = {tauE_neg} s')
+    print(f'  tauE / tauA (positive) = {tauE_pos / tauA_pos} ')
+    print(f'  tauE / tauA (negative) = {tauE_neg / tauA_neg} ')
     print(f'  Peak shear (positive) = {peak_shear_pos} s^-1')
     print(f'  Peak shear (negative) = {peak_shear_neg} s^-1')
+    print(f' Bmax (positive) = {Bmax_pos} T')
+    print(f' Bmax (negative) = {Bmax_neg} T')
+    print(f' p0 (positive) = {p0_pos} Pa')
+    print(f' p0 (negative) = {p0_neg} Pa')
 
 plt.show()
