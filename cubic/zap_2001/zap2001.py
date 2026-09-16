@@ -30,8 +30,8 @@ rneg = r_data[r_data < 0]
 """
 Make two fits of bulk, chi=2 cubic vortex profile to each half of the data
 """
-n0 = 1e23 # Plasma density [m^-3]; 1e22 - 1e23
-Tp = 5000 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV is experimental temperature of Zap 2001
+n0 = 4e21 # Plasma density [m^-3]; 1e22 - 1e23
+Tp = 200 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti = 150 - 200 eV is experimental temperature of Zap 2001
 uedge = 4e4 # Edge flow velocity [m/s]; % Tie to dataset for better fidelity but 4e4 m/s is a reasonable estimate based on the data, which shows edge velocities around 40 km/s (4e4 m/s) at r = +/- 10 mm. This is consistent with the observed velocity profile, where the velocity at the edge (r = +/- 10 mm) is approximately 40 km/s. Using this value for uedge allows us to anchor our fits to the experimental data more accurately, ensuring that the reconstructed velocity profiles align well with the observed edge velocities in the Zap 2001 dataset.
 u0 = 10e4 # Core flow velocity [m/s]; 
 rp = 10e-3 # Pinch radius [m]; 10mm
@@ -66,13 +66,15 @@ for uz0p, uz0n in zip(uz0_pos, uz0_neg):
     uzpos_fits.append(uzpos_fit)
     uzneg_fits.append(uzneg_fit)
 
-    plt.plot(rpos * 1e3, uzpos_fit / 1e3, 'bo', label='Bulk, $\chi=2$, positive cubic vortex')
-    plt.plot(rneg * 1e3, uzneg_fit / 1e3, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
+    plotlen_pos = len(uzpos_fit) - 1
+    plotlen_neg_offset = 2
+    plt.plot(rpos[:plotlen_pos] * 1e3, uzpos_fit[:plotlen_pos] / 1e3, 'bo', label='Bulk, $\chi=2$, positive cubic vortex')
+    plt.plot(rneg[plotlen_neg_offset:] * 1e3, uzneg_fit[plotlen_neg_offset:] / 1e3, 'ro', label='Bulk, $\chi=2$, negative cubic vortex')
     plt.plot(r_data * 1e3, uz_data / 1e3, 'kx', label='Zap 2001 Axial Velocity Data')
 
-    plt.title(f'Analytic reconstruction of Zap 2001 axial velocity data, Root {root_num}, $r_p = {rp*1e3}$ mm, $n_0 = {n0:.2e}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = {u0 / 1e3} $ km/s)')
-    plt.xlabel('Radius (mm)')
-    plt.ylabel('Axial Velocity (km/s)')
+    plt.title(f'Analytic reconstruction of Zap 2001 axial velocity data, Root {root_num}, $r_p = {rp*1e3}$ mm, $n_0 = {n0:.2e}$ m$^{{-3}}$, $T_p = {Tp / cnst.eV_to_K}$ eV, $u_0 = {u0 / 1e3} $ km/s)', fontsize=16)
+    plt.xlabel('Radius (mm)', fontsize=16)
+    plt.ylabel('Axial Velocity (km/s)', fontsize=16)
 
     plt.ylim(0, 150)
 
@@ -107,15 +109,16 @@ print(f'RRMSEneg_all = {RRMSEneg_all}')
 print(f'RRMSEneg = {RRMSEneg}')
 
 # Calculate plasma properties
-# for uz0p, uz0n in zip(uz0_pos, uz0_neg):
-#     cbt_temp = cpfm.cbt(n0, np.abs(uz0p), rp, Tp) # Vortex constant [m]
+for uz0p, uz0n in zip(uz0_pos, uz0_neg):
+    cbt_pos = cpfm.cbt(n0, np.abs(uz0p), rp, Tp) # Vortex constant [m]
+    cbt_neg = cpfm.cbt(n0, np.abs(uz0n), rp, Tp) # Vortex constant [m]
 #     p0 = cpfm.p0(cbt_temp, n0, np.abs(uz0p), rp) # Core plasma pressure [Pa]
 #     Bmax = np.abs(cpfm.btheta_chi2_negbulk(cbt_temp, np.abs(uz0p), u0, n0, rp)) # Edge magnetic field [T]
 #     tauE = cpfm.tauE(p0, np.abs(uz0p), rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
 #     tauA = rp / pp.vA(Bmax, n0) # Alfvén time [s]
 #     # peak_shear = cpfm.peakshear_chi2cubic()
-#     peak_shear = (8.0 / 27.0) * uz0p / cbt_temp 
-
+    peak_shear_pos = (8.0 / 27.0) * np.abs(uz0p) / cbt_pos 
+    peak_shear_neg = (8.0 / 27.0) * np.abs(uz0n) / cbt_neg 
 #     print(f'For uz0 = {uz0p} m/s:')
 #     print(f'  cbt = {cbt_temp} m')
 #     print(f'  p0 = {p0} Pa')
@@ -123,6 +126,7 @@ print(f'RRMSEneg = {RRMSEneg}')
 #     print(f'  tauE = {tauE} s')
 #     print(f'  tauA = {tauA} s')
 #     print(f'  tauE / tauA = {tauE / tauA}')
-#     print(f'  Peak shear = {peak_shear} s^-1')
+    print(f'  Peak shear (positive) = {peak_shear_pos} s^-1')
+    print(f'  Peak shear (negative) = {peak_shear_neg} s^-1')
 
 plt.show()
