@@ -117,7 +117,7 @@ for uz0p, uz0n in zip(uz0_pos, uz0_neg):
     cbt_neg = cpfm.cbt(n0, np.abs(uz0n), rp, Tp) # Vortex constant [m]
     p0_pos = cpfm.p0_posbulk(cbt_pos, n0, np.abs(uz0p), u0, rp) # Core plasma pressure [Pa]
     p0_neg = cpfm.p0_negbulk(cbt_neg, n0, np.abs(uz0n), u0, rp) # Core plasma pressure [Pa]
-    Bmax_pos = np.abs(cpfm.btheta_chi2_negbulk(cbt_pos, np.abs(uz0p), u0, n0, rp)) # Edge magnetic field [T]
+    Bmax_pos = np.abs(cpfm.btheta_chi2_posbulk(cbt_pos, np.abs(uz0p), u0, n0, rp)) # Edge magnetic field [T]
     Bmax_neg = np.abs(cpfm.btheta_chi2_negbulk(cbt_neg, np.abs(uz0n), u0, n0, rp)) # Edge magnetic field [T]
     tauE_pos = cpfm.tauE(p0_pos, np.abs(uz0p), rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax_pos), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
     tauE_neg = cpfm.tauE(p0_neg, np.abs(uz0n), rp, Tp, spz.KappaPerp_spitzer_e(n0, Tp, pp.omega_ce(Bmax_neg), spz.tau_e(n0, Tp, spz.coulombLog_ei(n0, Tp, 1)), spz.coulombLog_ei(n0, Tp, 1))) # Energy confinement time [s]
