@@ -12,10 +12,10 @@ import modules.plasma_properties as pp
 import modules.constants as cnst
 
 n0 = 1e14  # [m^-3] uniform number density
-rp = 1e-2 # [m] pinch radius
-Tp = 0.5 * cnst.eV_to_K # [K] edge temperature
+rp = 5e-3 # [m] pinch radius
+Tp = 0.2 * cnst.eV_to_K # [K] edge temperature
 
-u_edge = 1e5 # [m/s] u(rp)
+u_edge = 2.5e5 # [m/s] u(rp)
 
 uz0 = cpfm.root_solve_chi2_pure(u_edge, n0, rp, Tp)
 
