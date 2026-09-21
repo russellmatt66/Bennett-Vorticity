@@ -76,12 +76,12 @@ u0 = 0.75e6 # Core flow velocity [m/s]; mm / ns -> m/s
 n0 = 1e17 # Plasma density [m^-3]; 1e17 - 1e19
 
 u0_needletip = 0.375e6 # Core flow velocity for plasma at the needletip [m/s];
-n0_needletip = 1e19 # Plasma density for plasma at the needletip
+n0_needletip = 1e18 # Plasma density for plasma at the needletip
 
 # Tp = 1e3 * cnst.eV_to_K # Plasma temperature [K]; T = Te + Ti ~ 1 keV is just a guess
 Tp_front = 2e3 # Li et al (2021) estimate for gas temperature is 300 [degK]: p12, S4.6
 Tp_wake = 2e4 
-Tp_needletip = 1e5 # needletip edge plasma temperature [degK]
+Tp_needletip = 1e4 # needletip edge plasma temperature [degK]
 
 rp_front = 5e-3 # m
 rp_wake = 15e-3 # m 
