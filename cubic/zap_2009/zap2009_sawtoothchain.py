@@ -290,16 +290,16 @@ plt.figure()
 # plt.legend()
 
 # Comment this OUT if you don't want to plot everything
-# plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
-# nfig += len(swtc_uz_neg0pt10[0]) # Cubic, chi=2 vortices will all have four roots
-# plot_vortex_chain(nfig, uz_tau_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
-# nfig += len(swtc_uz_0pt10[0]) 
+plot_vortex_chain(nfig, uz_tau_neg_0pt10, swtc_uz_neg0pt10, r_neg0pt10, cbts_neg0pt10, uz0_allroots_neg0pt10)
+nfig += len(swtc_uz_neg0pt10[0]) # Cubic, chi=2 vortices will all have four roots
+plot_vortex_chain(nfig, uz_tau_0pt10, swtc_uz_0pt10, r_0pt10, cbts_0pt10, uz0_allroots_0pt10)
+nfig += len(swtc_uz_0pt10[0]) 
 plot_vortex_chain(nfig, uz_tau_0pt16, swtc_uz_0pt16, r_0pt16, cbts_0pt16, uz0_allroots_0pt16)
 nfig += len(swtc_uz_0pt16[0])
-# plot_vortex_chain(nfig, uz_tau_0pt34, swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34)
-# nfig += len(swtc_uz_0pt34[0])
-# plot_vortex_chain(nfig, uz_tau_0pt56, swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56)
-# nfig += len(swtc_uz_0pt56[0])
+plot_vortex_chain(nfig, uz_tau_0pt34, swtc_uz_0pt34, r_0pt34, cbts_0pt34, uz0_allroots_0pt34)
+nfig += len(swtc_uz_0pt34[0])
+plot_vortex_chain(nfig, uz_tau_0pt56, swtc_uz_0pt56, r_0pt56, cbts_0pt56, uz0_allroots_0pt56)
+nfig += len(swtc_uz_0pt56[0])
 
 """
 Solve for magnetic fields across both half-chords, and plot

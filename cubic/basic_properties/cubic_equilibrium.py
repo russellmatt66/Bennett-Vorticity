@@ -38,7 +38,7 @@ axs[1, 0].plot(phi, btheta_tilde)
 axs[1, 0].set_ylabel('$\\tilde{B}_\\theta$', fontsize=18)
 
 axs[1, 1].plot(phi, dptilde_dtheta)
-axs[1, 1].set_ylabel('$d\\tilde{p}/d\\theta$', fontsize=18)
+axs[1, 1].set_ylabel('$d\\tilde{p}/d\\phi$', fontsize=18)
 
 axs[2, 0].plot(phi, Er_tilde)
 axs[2, 0].set_xlabel('$\\phi$', fontsize=18)
