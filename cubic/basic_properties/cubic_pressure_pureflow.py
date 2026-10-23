@@ -11,9 +11,9 @@ import modules.spitzer as spitzer
 import modules.plasma_properties as pp
 import modules.constants as cnst
 
-n0 = 1e14  # [m^-3] uniform number density
-rp = 5e-3 # [m] pinch radius
-Tp = 0.2 * cnst.eV_to_K # [K] edge temperature
+n0 = 1e23  # [m^-3] uniform number density
+rp = 1 # [m] pinch radius
+Tp = 22e3 * cnst.eV_to_K # [K] edge temperature
 
 u_edge = 2.5e5 # [m/s] u(rp)
 
