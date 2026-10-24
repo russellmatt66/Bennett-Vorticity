@@ -99,7 +99,7 @@ plt.figure(figsize=(10, 6))
 plt.scatter(front_data[space_string], front_data[intensity_string], label="Experimental Data") # Plot experimental data of the front region
 for uz_front in uz_fronts_list:
     # plt.plot(front_base_idx[space_string] + (r_front) * 1e6, uz_front)  # Convert r_front back to micrometers for plotting
-    plt.plot(front_base_idx[space_string] + (r_front) * 1e6, (cnst.q_e * n0) / alpha * uz_front, label="Vortex Profile")  # Convert r_front back to micrometers for plotting
+    plt.plot(front_base_idx[space_string] + (r_front) * 1e6, (cnst.q_e * n0) / alpha * uz_front, label="Vortex Profile", color='red')  # Convert r_front back to micrometers for plotting
     # plt.plot((r_front) * 1e6, uz_front)  # Convert r_front back to micrometers for plotting
 plt.xlabel("r (um)")
 # plt.ylabel("Uz (m/s)")
