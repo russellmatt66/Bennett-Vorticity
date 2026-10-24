@@ -7,6 +7,7 @@ G = 6.67430e-11 # Gravitational constant (m^3 kg^-1 s^-2)
 
 me = 9.10938356e-31 # Electron mass (kg)
 mH = 1.6735575e-27 # Hydrogen ion mass (kg)
+mOX = 2.656e-26 # Oxygen ion mass (kg)
 mair = 4.656e-26 # Air ion mass (kg)
 
 eps0 = 8.854187817e-12 # Permittivity of free space (F/m)
