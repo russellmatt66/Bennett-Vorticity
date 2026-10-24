@@ -81,6 +81,7 @@ for root in uz0_front_roots:
     if np.abs(root) > 3e8: continue
     if np.abs(root.imag) > 1e-12: continue
     front_C_list.append(cpfm.cbt(n0, np.abs(root), rp_front, Tp))
+    if front_C_list[-1] / rp_front < 0.1: continue # poorly localized shear layer - too abrupt
     uz_fronts_list.append(cpfm.uz_chi2cubic_posbulk(front_C_list[-1], np.abs(root), u_0_front, r_front))
 
 print("front_C_list", front_C_list)
@@ -98,10 +99,11 @@ plt.figure(figsize=(10, 6))
 plt.scatter(front_data[space_string], front_data[intensity_string], label="Experimental Data") # Plot experimental data of the front region
 for uz_front in uz_fronts_list:
     # plt.plot(front_base_idx[space_string] + (r_front) * 1e6, uz_front)  # Convert r_front back to micrometers for plotting
-    plt.plot(front_base_idx[space_string] + (r_front) * 1e6, (cnst.q_e * n0) / alpha * uz_front)  # Convert r_front back to micrometers for plotting
+    plt.plot(front_base_idx[space_string] + (r_front) * 1e6, (cnst.q_e * n0) / alpha * uz_front, label="Vortex Profile")  # Convert r_front back to micrometers for plotting
     # plt.plot((r_front) * 1e6, uz_front)  # Convert r_front back to micrometers for plotting
 plt.xlabel("r (um)")
 # plt.ylabel("Uz (m/s)")
 plt.ylabel("Intensity (arb. units)")
-plt.title("Front Vortex Intensity Profiles")
+plt.title(f"Vortex solutions to Balcazar (2025) microjet, n0 = {n0} [$m^{-3}$], Tp = {Tp * cnst.K_to_eV} [eV], uH = {u_Hedge:.2e} [m/s], uOX = {u_OXedge:.2e} [m/s]")
+plt.legend()
 plt.show()
