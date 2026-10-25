@@ -92,6 +92,41 @@ rp_wake = wake_data[space_string].iloc[wake_edge_idx] - wake_data[space_string].
 # Separate the region into individual vortices for analysis
 # Solve the vortex model in each region
 
+# Calculate R-squared
+# Experimental x,y (front region)
+x_exp = front_data[space_string].to_numpy()                     # um
+y_exp = front_data[intensity_string].to_numpy()                 # intensity
+
+# Model x grid (same as your plotting transform)
+x_model = front_base_idx[space_string] + r_front * 1e6          # um
+
+def r_squared(y_true, y_pred):
+    ss_res = np.sum((y_true - y_pred)**2)
+    ss_tot = np.sum((y_true - np.mean(y_true))**2)
+    return 1.0 - ss_res / ss_tot if ss_tot > 0 else np.nan
+
+r2_values = []
+
+for uz_front in uz_fronts_list:
+    # Convert model velocity to intensity the same way you plot it
+    y_model = (cnst.q_e * n0) / alpha * uz_front
+
+    # Keep only experimental points inside model radius range
+    mask = (x_exp >= np.min(x_model)) & (x_exp <= np.max(x_model))
+    x_in = x_exp[mask]
+    y_in = y_exp[mask]
+
+    # Interpolate model onto experimental x locations
+    y_model_on_exp = np.interp(x_in, x_model, y_model)
+
+    # Compute R^2 over the shared range
+    r2 = r_squared(y_in, y_model_on_exp)
+    r2_values.append(r2)
+
+print("R^2 values for each front solution:", r2_values)
+if len(r2_values) > 0:
+    print("Best R^2:", np.nanmax(r2_values))
+
 # Plot the results
 # Generate plots for the front and wake regions to visualize the vortex intensity profiles
 plt.figure(figsize=(10, 6))
