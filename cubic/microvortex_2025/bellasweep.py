@@ -73,5 +73,27 @@ alpha = J_edge / front_edge_idx[intensity_string]
 J_0 = alpha * front_base_idx[intensity_string]
 u_0_front = J_0 / (cnst.q_e * n0)
 
-for iv in range(vs_points):
-    u_edge = u_edgelist[iv]
+front_C_listlist = []
+uz_front_listlist = []
+num_points = 1000
+for ir in range(len(pinch_radii)):
+    for iv in range(vs_points):
+        rp = pinch_radii.iloc[ir]
+        u_edge = u_edgelist[iv]
+        front_C_list = []
+        r_front = np.linspace(0, rp, num_points)
+        uz_front_list = []
+        uz0_front_roots = cpfm.root_solve_chi2_posbulk(u_edge, u_0_front, n0, rp, Tp)
+        for root in uz0_front_roots:
+            if np.abs(root) > 3e8: continue # FTL - unphysical (or tachyon ... ?)
+            if np.abs(root.imag) > 1e-12: continue # Need real velocity
+            front_C_list.append(cpfm.cbt(n0, np.abs(root), rp, Tp))
+            if front_C_list[-1] / rp < 0.1: continue # poorly localized shear layer - too abrupt
+            uz_front_list.append(cpfm.uz_chi2cubic_posbulk(front_C_list[-1], np.abs(root), u_0_front, r_front))
+        front_C_listlist.append(front_C_list)
+        uz_front_listlist.append(uz_front_list)
+
+# Now we have lists of front_C and uz_front solutions for each combination of pinch radius and edge velocity
+# front_C_listlist contains the C values for each case
+# uz_front_listlist contains the corresponding uz profiles for each case
+# [num_pinch_radii * num_edge_velocities] is the length of each and then the additional dimension comes from the entries
