@@ -184,6 +184,6 @@ valid = solns_df["r2_shear"].notna().sum()
 frac_above_090 = n_above_090 / valid if valid else np.nan
 print("Fraction (of non-NaN):", frac_above_090)
 
-solns_df.to_csv("../../analytic_fits/solns_df.csv")
+solns_df.to_csv("../../analytic_fits/bella_2025/solns_df.csv")
 
 plt.show()
