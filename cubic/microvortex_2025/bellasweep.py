@@ -128,11 +128,12 @@ for ir in range(len(pinch_radii)):
     plt.figure(ir)
     plt.xlabel("r [um]")
     plt.ylabel("Intensity (arb. units)")
-    plt.title(f"Surviving front solutions for rp = {pinch_radii.iloc[ir]}")
     plt.scatter(front_data[space_string], front_data[intensity_string], label="Experimental Data") # Plot experimental data of the front region
     rp = pinch_radii.iloc[ir]
     for iH in range(vs_points):
         for iOX in range(vs_points):
+            plt.title(f"Real and subluminal Bennett vortex solutions for n0 = {n0:.2e} [m^-3], Tp = {cnst.K_to_eV * Tp:.2e} [eV], rp = {pinch_radii.iloc[ir]:.2e} [m]")
+
             idx = ir * vs_points * vs_points + iH * vs_points + iOX # all the solutions were stored flattened
             uz_front = uz_front_tensor[idx, 0]
             if len(uz_front) == 0: continue
@@ -162,6 +163,7 @@ for ir in range(len(pinch_radii)):
             })
             # Plot
             plt.plot(r_model_um, I_model)
+            plt.legend()
 
 solns_df = pd.DataFrame(records)
 print(solns_df.head())
