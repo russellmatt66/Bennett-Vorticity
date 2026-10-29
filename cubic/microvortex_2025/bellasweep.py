@@ -126,14 +126,21 @@ records = []
 # Plot the solutions that survived and record statistics
 for ir in range(len(pinch_radii)):
     plt.figure(ir)
+    plt.rcParams.update({
+        "font.size": 16,
+        "axes.titlesize": 18,
+        "axes.labelsize": 24,
+        "legend.fontsize": 16,
+        "xtick.labelsize": 16,
+        "ytick.labelsize": 16,
+    })
     plt.xlabel("r [um]")
     plt.ylabel("Intensity (arb. units)")
     plt.scatter(front_data[space_string], front_data[intensity_string], label="Experimental Data") # Plot experimental data of the front region
     rp = pinch_radii.iloc[ir]
+    plt.title(f"Real and subluminal Bennett vortex solutions for n0 = {n0:.2e} [m^-3], Tp = {cnst.K_to_eV * Tp:.2e} [eV], rp = {pinch_radii.iloc[ir]:.2e} [m]")
     for iH in range(vs_points):
         for iOX in range(vs_points):
-            plt.title(f"Real and subluminal Bennett vortex solutions for n0 = {n0:.2e} [m^-3], Tp = {cnst.K_to_eV * Tp:.2e} [eV], rp = {pinch_radii.iloc[ir]:.2e} [m]")
-
             idx = ir * vs_points * vs_points + iH * vs_points + iOX # all the solutions were stored flattened
             uz_front = uz_front_tensor[idx, 0]
             if len(uz_front) == 0: continue
@@ -181,6 +188,20 @@ print(solns_df.head())
 
 n_above_090 = (solns_df["r2_shear"] > 0.90).sum()
 print("Count r2_shear > 0.90:", n_above_090)
+
+for tir in range(len(pinch_radii)):
+    mask_tir = (solns_df["ir"] == tir) & (solns_df["r2_shear"] > 0.90)
+    n_above_090_tir = mask_tir.sum()
+    print(f"Count r2_shear > 0.90 for ir = {tir}:", n_above_090_tir)
+
+for tir in range(len(pinch_radii)):
+    mask_tir = (solns_df["ir"] == tir)
+    r2_avg = solns_df.loc[mask_tir, "r2_shear"].mean()
+    r2_median = solns_df.loc[mask_tir, "r2_shear"].median()
+    r2_uncertainty = solns_df.loc[mask_tir, "r2_shear"].std()
+    print(f"Uncertainty r2_shear for ir = {tir}:", r2_uncertainty)
+    print(f"Median r2_shear for ir = {tir}:", r2_median)
+    print(f"Average r2_shear for ir = {tir}:", r2_avg)
 
 valid = solns_df["r2_shear"].notna().sum()
 frac_above_090 = n_above_090 / valid if valid else np.nan
