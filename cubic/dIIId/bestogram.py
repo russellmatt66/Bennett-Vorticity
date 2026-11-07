@@ -10,6 +10,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+from matplotlib.ticker import MaxNLocator
+
 # Load as DataFrames (no plotting here) and pull a numeric series from each.
 bwr_df = pd.read_csv('../../analytic_fits/DIIID/best_wake_rrmses.csv', header=None, names=['rrmse'])
 bfr_df = pd.read_csv('../../analytic_fits/DIIID/best_front_rrmses.csv', header=None, names=['rrmse'])
@@ -44,20 +46,22 @@ print(f'Min RRMSE for best front solutions: {bfr_min:.4f}')
 all_vals = np.concatenate([bwr_rrmses, bfr_rrmses])
 bins = np.linspace(all_vals.min(), all_vals.max(), 21)  # 20 bins
 
-N_sweep = bwr_rrmses.size # Both arrays come from same sweep
+N_wake = bwr_rrmses.size 
+N_front = bfr_rrmses.size
 
-fig, ax = plt.subplots(1, 2, figsize = (10, 4), sharey=True)
+fig, ax = plt.subplots(1, 2, figsize = (10, 4), sharey=False)
 
 ax[0].hist(bwr_rrmses, bins=bins, alpha=0.5)
 ax[0].set_xlabel('Range-Normalized Relative Root Mean Squared Error (RRMSE)')
 ax[0].set_ylabel('Frequency')
-ax[0].set_title(f'Histogram of RRMSE for Best Wake Solutions to DIIID 2005 Edge Pedestal, N={N_sweep}')
+ax[0].set_title(f'Histogram of RRMSE for Best Wake Solutions to DIIID 2005 Edge Pedestal, $Ns$={N_wake}')
+ax[0].yaxis.set_major_locator(MaxNLocator(integer=True))
 ax[0].legend()
 
 ax[1].hist(bfr_rrmses, bins=bins, alpha=0.5)
 ax[1].set_xlabel('Range-Normalized Relative Root Mean Squared Error (RRMSE)')
 ax[1].set_ylabel('Frequency')
-ax[1].set_title(f'Histogram of RRMSE for Best Front Solutions to DIIID 2005 Edge Pedestal Sweep, N={N_sweep}')
+ax[1].set_title(f'Histogram of RRMSE for Best Front Solutions to DIIID 2005 Edge Pedestal Sweep, $Ns$={N_front}')
 ax[1].legend()
 
 tick_edges = bins[::2]  # every 2nd edge so labels are readable

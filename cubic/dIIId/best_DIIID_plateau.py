@@ -208,9 +208,9 @@ for r_plateau_val, r_plateau_idx_val in zip(r_plateau, r_plateau_idx):
             # plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
             plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i])
 
-    plt.title(f'Shear-flow stabilized solutions to DIIID edge pedestal toroidal current density plateau index = {r_plateau_idx_val} \n $N$ = {N_sweep * N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
-    plt.xlabel('Radius (m)')
-    plt.ylabel('$J_\\phi$ (MA/m$^2$)')
+    plt.title(f'Shear-flow stabilized solutions to DIIID edge pedestal toroidal current density plateau index = {r_plateau_idx_val} \n $N$ = {N_sweep * N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV', fontsize=20)
+    plt.xlabel('Radius (m)', fontsize=18)
+    plt.ylabel('$J_\\phi$ (MA/m$^2$)', fontsize = 18)
 
 # r_Jmax = uz_df['R (m)'][Jmaxidx] # R at maximum current density
 # Jzmax = uz_df['J (MA / m^2)'][Jmaxidx]

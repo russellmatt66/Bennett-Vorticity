@@ -27,7 +27,7 @@ Tp_max = 700 * cnst.eV_to_K # Plasma temperature [K];
 n0_min = 1e19 # m^-3
 n0_max = 1e20 # m^-3
 
-N_sweep = 25 # Number of points in the sweep for both n0 and Tp
+N_sweep = 100 # Number of points in the sweep for both n0 and Tp
 n0_sweep = np.linspace(n0_min, n0_max, N_sweep) # Sweep over density
 Tp_sweep = np.linspace(Tp_min, Tp_max, N_sweep) # Sweep over temperature
 
@@ -118,6 +118,7 @@ best_front_n0s = []
 
 tolerance = 1e-4
 endpoint_rtol = 1e-3
+acc_threshold = 0.2
 for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
     n0 = n0_sweep[nss // N_sweep]
     uz_wake = uz_df['J (MA / m^2)'].iloc[rminidx:Jmaxidx + 1] / (cnst.q_e * n0) * 1e6 # Convert J to uz for wake region (include both boundaries)
@@ -133,6 +134,8 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
             continue # Skip nonphysical solutions
         if not np.isclose(wake_soln[0], uz_wake.iloc[0], rtol=endpoint_rtol, atol=tolerance): # Check if the first point matches within tolerance
             continue # Skip nonphysical solutions
+        if rrmse > acc_threshold: 
+            continue # Didn't meet acc. threshold
         if rrmse < rrmse_min:
             rrmse_min = rrmse
             best_wake_soln = wake_soln
@@ -159,6 +162,8 @@ for nss in range(N_sweep * N_sweep): # Loop over all combinations of n0 and Tp
             continue # Skip nonphysical solutions
         if not np.isclose(front_soln[0], uz_front.iloc[0], rtol=endpoint_rtol, atol=tolerance): # Check if the first point matches within tolerance
             continue # Skip nonphysical solutions
+        if rrmse > acc_threshold: 
+            continue # Didn't meet acc. threshold
         if rrmse < rrmse_min:
             rrmse_min = rrmse
             best_front_soln = front_soln
@@ -178,16 +183,16 @@ plt.figure()
 plt.scatter(uz_df['R (m)'][rminidx:] - rmin, uz_df['J (MA / m^2)'][rminidx:], label='MAST Pre-ELM J_phi')
 for i, wake_soln in enumerate(best_wake_solns):
     # if best_wake_rrmses[i] < 0.1 and best_wake_cbts[i] < 0.35 * rp_wake: # Threshold to avoid clutter
-    if best_wake_rrmses[i] < 0.2: # Threshold to avoid clutter
+    if best_wake_rrmses[i] < acc_threshold: # Threshold to avoid clutter
         plt.plot(r_wake, wake_soln / 1e6 * cnst.q_e * best_wake_n0s[i], label=f'Wake fit {i+1}, n0 = {best_wake_n0s[i]:.4e}, RRMSE = {best_wake_rrmses[i]:.4f}')
 
 for i, front_soln in enumerate(best_front_solns):
-    if best_front_rrmses[i] < 0.2: # Threshold to avoid clutter
+    if best_front_rrmses[i] < acc_threshold: # Threshold to avoid clutter
         plt.plot(r_front, front_soln / 1e6 * cnst.q_e * best_front_n0s[i], label=f'Front fit {i+1}, RRMSE = {best_front_rrmses[i]:.4f}, n0 = {best_front_n0s[i]:.4e}')
 
-plt.title(f'Cubic vortex solutions to DIIID edge pedestal toroidal current density profile, $N$ = {N_sweep * N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV')
-plt.xlabel('Radius (m)')
-plt.ylabel('$J_\\phi$ (MA/m$^2$)')
+plt.title(f'Cubic vortex solutions to DIIID edge pedestal toroidal current density profile, \n $N$ = {N_sweep * N_sweep}, rp = {rp_wake:.3f} m (wake), {rp_front:.3f} m (front), n0 = {n0_min:.2e} - {n0_max:.2e} $m^{{-3}}$, Tp = {Tp_min / cnst.eV_to_K:.2f} - {Tp_max / cnst.eV_to_K:.2f} eV', fontsize=18)
+plt.xlabel('Radius (m)', fontsize=20)
+plt.ylabel('$J_\\phi$ (MA/m$^2$)', fontsize=20)
 # plt.legend()
 
 # plt.fill_between(r_wake, wake_lo, wake_hi, alpha=0.3, label='Wake band')
