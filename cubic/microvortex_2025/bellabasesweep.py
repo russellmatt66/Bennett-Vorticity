@@ -234,7 +234,7 @@ print(solns_df.head())
 # top10 = solns_df.nlargest(10, "r2_shear")
 # print(top10)
 
-n_above_090 = (solns_df["r2_shear"] > 0.80).sum()
+n_above_090 = (solns_df["r2_shear"] > 0.95).sum()
 print("Count r2_shear > 0.80:", n_above_090)
 
 # n_above_090 = (solns_df["r2_shear"] > 0.90).sum()
@@ -242,7 +242,7 @@ print("Count r2_shear > 0.80:", n_above_090)
 
 for tipair in range(len(pair_configs)):
     pair_cfg = pair_configs[tipair]
-    mask_tir = (solns_df["ipair"] == tipair) & (solns_df["r2_shear"] > 0.80)
+    mask_tir = (solns_df["ipair"] == tipair) & (solns_df["r2_shear"] > 0.95)
     n_above_090_tir = mask_tir.sum()
     print(f"Count r2_shear > 0.80 for pair ipair={tipair} (base#{pair_cfg['ibase']}, plateau#{pair_cfg['iplateau']}):", n_above_090_tir)
 
