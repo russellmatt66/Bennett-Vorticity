@@ -159,6 +159,42 @@ def rsq(y, yhat):
     ss_tot = np.sum((y - np.mean(y))**2)
     return 1.0 - ss_res / ss_tot if ss_tot > 0 else np.nan
 
+def shear_layer_bounds_from_transition(r_um, y_model, y0, y1, low_frac=0.10, high_frac=0.90):
+    """
+    Define shear layer as the 10%-90% transition interval of the modeled signal.
+    Returns (r_start_um, r_end_um) or (np.nan, np.nan) if undefined.
+    """
+    dy = y1 - y0
+    if np.abs(dy) < 1e-30:
+        return np.nan, np.nan
+
+    # Normalized transition coordinate.
+    s = (y_model - y0) / dy
+    s = np.asarray(s)
+
+    def first_crossing(x, z, level):
+        for k in range(len(z) - 1):
+            z0 = z[k]
+            z1 = z[k + 1]
+            if (z0 - level) == 0:
+                return x[k]
+            if (z0 - level) * (z1 - level) <= 0:
+                dz = z1 - z0
+                if np.abs(dz) < 1e-30:
+                    return x[k]
+                t = (level - z0) / dz
+                return x[k] + t * (x[k + 1] - x[k])
+        return np.nan
+
+    r_start = first_crossing(r_um, s, low_frac)
+    r_end = first_crossing(r_um, s, high_frac)
+
+    if np.isnan(r_start) or np.isnan(r_end):
+        return np.nan, np.nan
+    if r_end < r_start:
+        r_start, r_end = r_end, r_start
+    return r_start, r_end
+
 r_exp_um = front_data[space_string].to_numpy()
 I_exp = front_data[intensity_string].to_numpy()
 
@@ -192,8 +228,29 @@ for ipair, pair_cfg in enumerate(pair_configs):
             I_model = (cnst.q_e * n0) / alpha_tensor[ipair, iH, iOX] * uz_front
             I_pred = np.interp(r_exp_um, r_model_um, I_model, left=np.nan, right=np.nan)
             rp_um = rp * 1e6
-            r0_um = base_r_um
-            mask_shear = (r_exp_um >= r0_um) & (r_exp_um <= r0_um + rp_um) & np.isfinite(I_pred)
+
+            # Comparison metric over the full modeled interval [r0, r0 + rp].
+            mask_full = (
+                (r_exp_um >= base_r_um)
+                & (r_exp_um <= base_r_um + rp_um)
+                & np.isfinite(I_pred)
+            )
+            r2_full = rsq(I_exp[mask_full], I_pred[mask_full]) if np.sum(mask_full) >= 3 else np.nan
+
+            # Define shear layer by modeled 10%-90% transition instead of full [r0, r0+rp].
+            r_shear_start_um, r_shear_end_um = shear_layer_bounds_from_transition(
+                r_model_um,
+                I_model,
+                pair_cfg["I0_target"],
+                pair_cfg["I_edge_target"],
+                low_frac=0.10,
+                high_frac=0.90,
+            )
+            mask_shear = (
+                (r_exp_um >= r_shear_start_um)
+                & (r_exp_um <= r_shear_end_um)
+                & np.isfinite(I_pred)
+            )
             r2_shear = rsq(I_exp[mask_shear], I_pred[mask_shear]) if np.sum(mask_shear) >= 3 else np.nan
             records.append({
                 "ipair": ipair,
@@ -212,7 +269,12 @@ for ipair, pair_cfg in enumerate(pair_configs):
                 "I_edge_target": pair_cfg["I_edge_target"],
                 "alpha": alpha_tensor[ipair, iH, iOX],
                 "u0_mps": u0_tensor[ipair, iH, iOX],
+                "r2_full": r2_full,
                 "r2_shear": r2_shear,
+                "r_shear_start_um": r_shear_start_um,
+                "r_shear_end_um": r_shear_end_um,
+                "shear_width_um": (r_shear_end_um - r_shear_start_um) if np.isfinite(r_shear_start_um) and np.isfinite(r_shear_end_um) else np.nan,
+                "n_full_points": int(np.sum(mask_full)),
                 "n_shear_points": int(np.sum(mask_shear)),
                 "has_solution": int(len(uz_front) > 0)
             })
@@ -235,7 +297,15 @@ print(solns_df.head())
 # print(top10)
 
 n_above_090 = (solns_df["r2_shear"] > 0.95).sum()
-print("Count r2_shear > 0.80:", n_above_090)
+print("Count r2_shear > 0.95:", n_above_090)
+
+topN = 10
+best_solns_df = solns_df.nlargest(topN, "r2_shear")
+print(f"Top {topN} solutions by shear-only r2_shear:")
+print(best_solns_df[[
+    "ipair", "ibase", "iplateau", "iH", "iOX", "r2_full", "r2_shear",
+    "r_shear_start_um", "r_shear_end_um", "shear_width_um", "n_full_points", "n_shear_points"
+]])
 
 # n_above_090 = (solns_df["r2_shear"] > 0.90).sum()
 # print("Count r2_shear > 0.90:", n_above_090)
@@ -244,7 +314,7 @@ for tipair in range(len(pair_configs)):
     pair_cfg = pair_configs[tipair]
     mask_tir = (solns_df["ipair"] == tipair) & (solns_df["r2_shear"] > 0.95)
     n_above_090_tir = mask_tir.sum()
-    print(f"Count r2_shear > 0.80 for pair ipair={tipair} (base#{pair_cfg['ibase']}, plateau#{pair_cfg['iplateau']}):", n_above_090_tir)
+    print(f"Count r2_shear > 0.95 for pair ipair={tipair} (base#{pair_cfg['ibase']}, plateau#{pair_cfg['iplateau']}):", n_above_090_tir)
 
 for tipair in range(len(pair_configs)):
     pair_cfg = pair_configs[tipair]
