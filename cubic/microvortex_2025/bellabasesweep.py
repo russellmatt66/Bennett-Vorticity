@@ -235,7 +235,7 @@ print(solns_df.head())
 # print(top10)
 
 n_above_090 = (solns_df["r2_shear"] > 0.95).sum()
-print("Count r2_shear > 0.80:", n_above_090)
+print("Count r2_shear > 0.95:", n_above_090)
 
 # n_above_090 = (solns_df["r2_shear"] > 0.90).sum()
 # print("Count r2_shear > 0.90:", n_above_090)
