@@ -41,11 +41,11 @@ axs[1, 1].plot(phi, dptilde_dtheta)
 axs[1, 1].set_ylabel('$d\\tilde{p}/d\\phi$', fontsize=18)
 
 axs[2, 0].plot(phi, Er_tilde)
-axs[2, 0].set_xlabel('$\\phi$', fontsize=18)
+axs[2, 0].set_xlabel('$\\phi = \\frac{r}{C}$', fontsize=18)
 axs[2, 0].set_ylabel('$\\tilde{E}_r$', fontsize=18)
 
 axs[2, 1].plot(phi, ptilde)
-axs[2, 1].set_xlabel('$\\phi$', fontsize=18)
+axs[2, 1].set_xlabel('$\\phi = \\frac{r}{C}$', fontsize=18)
 axs[2, 1].set_ylabel('$\\tilde{p}$', fontsize=18)
 
 for ax in axs.flat:
